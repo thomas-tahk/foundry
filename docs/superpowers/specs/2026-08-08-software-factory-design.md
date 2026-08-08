@@ -140,6 +140,22 @@ Nothing else in the report changes.
 **Scope:** `elected.txt` only.
 **Writes:** issues labeled `factory:proposed`, capped at 2 open per repo.
 
+### L1 promotes, it does not generate
+
+L1 does not invent next steps. L0 has already written three per repo, and a second
+loop generating its own list in parallel would produce two competing backlogs that
+drift apart — the same duplication that comes from running three orchestration
+frameworks side by side.
+
+Instead, L1 **promotes** one of L0's next steps into a full proposal: it picks the
+step, verifies the evidence still holds, and adds the done-gate, the blast radius, and
+the implementation notes that L0 deliberately omits. One source of candidate work
+(L0), one refiner (L1), one queue.
+
+If L1 believes no L0 step is worth promoting, it writes nothing and says so in the run
+log. If it believes L0 missed something, it proposes an *edit to the Resume issue*
+rather than opening a competing proposal.
+
 ### The evidence rule
 
 **Every proposal must cite a path, line, commit, or PR number. No citation, no issue.**
@@ -169,9 +185,13 @@ Evidence sources, in precedence order:
 
 ### Before opening
 
-Check that no open `factory:proposed` issue and no `factory:declined` issue already
-covers this. Check the cap. If the cap is hit, write nothing — a silent run is the
-correct outcome when the queue is full.
+Every proposal carries a `Source:` line naming exactly where it came from — an L0
+Resume step, an L3 check, or a named intent document. Before opening, a loop must
+confirm that no open `factory:proposed`, no `factory:declined`, and no open PR already
+covers that source. One source, one live proposal, ever.
+
+Check the cap. If the cap is hit, write nothing — a silent run is the correct outcome
+when the queue is full.
 
 ---
 
@@ -311,7 +331,35 @@ The factory may never install one during a run. Adoption always arrives as a PR 
 the user reads before merging, pinned to a version, from a named source. An unpinned
 or unnamed source is an automatic `factory:blocked`.
 
-### 5. Learning loop
+### 5. Context budgets
+
+The brain trickles into every loop, so it is the one part of this design that can rot
+by accumulation. Three rules keep it bounded:
+
+**Hard budgets, enforced in CI.** A workflow fails if any brain file exceeds its size:
+
+| File | Budget |
+|---|---|
+| Hub `CLAUDE.md` | 100 lines |
+| `LESSONS.md` | 30 entries, one line each plus a link |
+| `PROJECTS.md` | 10 lines per repo |
+
+**Eviction is a first-class operation.** When the learning loop wants to add a lesson
+to a full file, it must consolidate two existing entries or evict one, and say which
+and why. Append-only is how a brain becomes a swamp.
+
+**Skills are opt-in per loop, never inherited.** Each workflow declares its own
+`--allowedTools` and plugin list. L0 is read-only and gets no skills at all. L1 gets
+research tools. L2 gets the target repo's own `.claude/skills/` after checkout. There
+is no ambient global layer for a loop to accumulate into — which is the structural
+reason a cloud factory cannot bloat the way a workstation does.
+
+**Adoption is zero-sum.** A proposal to adopt a third-party skill must either name a
+skill to retire or argue explicitly why nothing should go. Collections grow by default
+because acquiring feels productive and pruning does not; making adoption cost something
+is what keeps the set honest.
+
+### 6. Learning loop
 
 Static rules decay. Monthly, a run reads every `factory:declined` issue and every
 closed-unmerged factory PR, looks for the pattern behind the rejections, and opens a
@@ -321,7 +369,7 @@ the factory proposes what it learned; the user decides what it knows.
 This is what makes the caps and the evidence rule improve over time instead of
 calcifying.
 
-### 6. The rails
+### 7. The rails
 
 "Use everything available" and "don't go off the rails" are the same design problem.
 The rails are these, and none of them is negotiable by the factory itself:
@@ -384,6 +432,7 @@ Verified against current official documentation:
 | Runaway cost | `--max-turns`, `timeout-minutes`, concurrency groups |
 | Bad merge into a live product | Draft PRs only; merge is always human |
 | Re-proposing rejected work | `factory:declined` label checked every run |
+| Two loops generating competing backlogs | One generator (L0), one refiner (L1); mandatory `Source:` line; one live proposal per source |
 | Nagging | The going-cold marker is a neutral line in an issue, never a notification |
 
 ## Done-gate

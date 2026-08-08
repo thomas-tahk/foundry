@@ -233,6 +233,112 @@ dormancy mechanism made visible in git. Three exist right now:
 
 ---
 
+## The factory's brain
+
+A GitHub Actions runner sees only what is committed to a repository. It cannot read
+`~/.claude/CLAUDE.md`, the local memory directory, the globally-installed skills, or
+`PLAYBOOK.md`. Everything the factory should know has to be made portable on purpose.
+This section is what turns the loops from mechanical scripts into something that
+actually uses what is available.
+
+### 1. Portable context
+
+Three committed files in the hub, passed to every loop:
+
+| File | Holds | Read by |
+|---|---|---|
+| `CLAUDE.md` (hub root) | The factory's operating charter — evidence rule, done-gate discipline, no `Co-Authored-By`, surgical-change rule, verify-don't-guess rule | Every loop, automatically |
+| `docs/factory/LESSONS.md` | What has and has not worked across these projects | L1, L3 before proposing |
+| `docs/factory/PROJECTS.md` | Per-repo standing intent: what it is for, what "done" means, what is explicitly out of scope | L0, L1 |
+
+`LESSONS.md` is seeded from history that already exists and is not otherwise
+recoverable from git — for example: four projects were parked in a row after being
+built on synthetic premises rather than real pull; the selection lesson was to
+concentrate on work with intrinsic pull and checkable ground truth; a green unit test
+is a weaker signal than an end-to-end reproduction. A proposal that contradicts a
+recorded lesson must say so and argue the case, or not be opened.
+
+Each target repo's own `CLAUDE.md` is read automatically after checkout, so per-repo
+conventions need no special handling.
+
+### 2. Skills
+
+Repo-local `.claude/skills/` load after checkout and are available to L2. Plugin
+skills are installed per-workflow through the action's `plugin_marketplaces` and
+`plugins` inputs, and a loop's prompt may be a skill invocation rather than prose.
+Where a repo already has skills configured — `knowflow` has the mattpocock engineering
+skills wired up — the factory uses them rather than reinventing the workflow.
+
+### 3. Research and current information
+
+Runners have network access, so `WebSearch` and `WebFetch` are granted to L1 and L2
+through `--allowedTools`. This exists to serve one specific rule, carried over from the
+user's standing conventions:
+
+> Never assume a library API method exists. Verify against official documentation, or
+> stop and ask.
+
+In factory terms: a proposal or implementation touching an unfamiliar or
+version-sensitive library must cite the official documentation it verified against. If
+it cannot reach the documentation, it applies `factory:blocked` and explains what it
+needs — it does not guess. Research also covers checking whether a proposed approach
+is still current before recommending it.
+
+### 4. Skill supply chain
+
+The factory does not have to be limited to skills that already exist locally. It may
+find them, write them, and feed the good ones back to the workstation. Three paths,
+each ending in a reviewed diff:
+
+**Adopt.** When a loop hits a task someone has already solved well, it may research
+public skill sources and *propose* one — as a PR editing the workflow's
+`plugin_marketplaces` and `plugins` inputs, pinned to a specific marketplace and
+version. The proposal must name the source, say what the skill does, and say why the
+existing set is insufficient.
+
+**Author.** When the factory finds itself doing the same multi-step workflow a third
+time, it proposes a skill instead of repeating the steps. New skills land in the target
+repo's `.claude/skills/`, where L2 picks them up automatically after checkout.
+
+**Promote.** A skill that proves useful across more than one repo is proposed for the
+hub's `skills/` directory. Merging it there makes it available to the workstation:
+`~/.claude/` is already version-controlled through the `dotfiles` repo via symlinks, so
+promotion is a documented local sync step the user runs, not something the cloud
+reaches in and does. The cloud never writes to the workstation.
+
+**The supply-chain rail:** a third-party skill is executable instruction, not data.
+The factory may never install one during a run. Adoption always arrives as a PR diff
+the user reads before merging, pinned to a version, from a named source. An unpinned
+or unnamed source is an automatic `factory:blocked`.
+
+### 5. Learning loop
+
+Static rules decay. Monthly, a run reads every `factory:declined` issue and every
+closed-unmerged factory PR, looks for the pattern behind the rejections, and opens a
+PR against `LESSONS.md` proposing what it learned. That PR is reviewed like any other —
+the factory proposes what it learned; the user decides what it knows.
+
+This is what makes the caps and the evidence rule improve over time instead of
+calcifying.
+
+### 6. The rails
+
+"Use everything available" and "don't go off the rails" are the same design problem.
+The rails are these, and none of them is negotiable by the factory itself:
+
+- **Draft PRs only. No merges. No pushes to `main`.** The one irreversible step is human.
+- **Evidence or silence.** No citation, no issue. A full queue means write nothing.
+- **Escalate instead of guessing.** Uncertainty becomes `factory:blocked` with a
+  specific question, never a plausible-looking assumption.
+- **Bounded tools.** Each loop's `--allowedTools` grants only what that loop needs;
+  L0 is read-only and cannot write code at all.
+- **Bounded runs.** `--max-turns` and `timeout-minutes` on every job.
+- **No self-modification.** The factory may propose changes to its own workflows,
+  lessons, and skills through a normal reviewed PR. It may never edit them in place
+  during a run, and it may never install a third-party skill mid-run.
+- **Secrets never surface.** No secret is echoed, printed, or written to a log or an
+  issue body, in any form, masked or otherwise.
+
 ## Authentication and secrets
 
 | Secret | Where | What |
@@ -294,6 +400,7 @@ Each phase is independently useful and independently abandonable.
 
 | Phase | Build | Proves |
 |---|---|---|
+| **0** | Portable brain: hub `CLAUDE.md`, `LESSONS.md`, `PROJECTS.md` | Nothing — but every later phase reads these, so they come first |
 | **1** | L0 census, hub, all 15 repos; drop the `Stale:` section from `generate_report.py` | The Resume issue is genuinely worth reading. If it isn't, stop here — the rest rests on this |
 | **2** | L1 proposer, `knowflow` only | Proposals grounded in real evidence are worth approving |
 | **3** | L2 builder, `knowflow` only | The full loop closes: label on phone → draft PR by evening |

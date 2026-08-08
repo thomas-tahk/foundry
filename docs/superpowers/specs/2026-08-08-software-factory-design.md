@@ -253,6 +253,71 @@ dormancy mechanism made visible in git. Three exist right now:
 
 ---
 
+## Agent orchestration
+
+A factory implies a head coordinating workers, not one agent doing everything in
+sequence. It does here too — but pointed deliberately, because parallelism helps in
+some places and actively hurts in others.
+
+### The principle
+
+**Parallelize investigation and verification. Serialize code generation.**
+
+Parallel generation is the tempting version and the wrong one. Two agents editing the
+same file overwrite each other, and more concurrent code production against a fixed
+human review budget makes the bottleneck worse, not better. Parallel *investigation*
+and parallel *review* do the opposite: they make each PR cheaper for a human to judge.
+That is the direction worth spending tokens on.
+
+### Where each pattern lives
+
+| Loop | Pattern | Why |
+|---|---|---|
+| **L0 census** | Fan-out — one subagent per repo, lead assembles the results | Fifteen independent reads with no shared state. Textbook fan-out, and it makes the weekly sweep fast |
+| **L1 promote** | Single agent | A judgment call over one queue. Parallelism adds cost and nothing else |
+| **L2 build** | **Lead + phased fan-out.** See below | The real head-and-workers structure |
+| **L3 keep-warm** | Fan-out — one subagent per repo per check | Independent mechanical checks |
+| **Across approvals** | N approved issues run as N concurrent workflow runs | Job-level parallelism, free, already implied by the label trigger |
+
+### L2 in detail — lead and workers
+
+The session that receives the approved issue acts as lead. It never writes code itself.
+
+1. **Investigate — 3 subagents in parallel.** One reads the intent documents and the
+   issue's cited evidence. One maps the affected code and its call sites. One looks for
+   prior art: existing tests, similar past PRs, relevant skills in the repo. Each
+   reports back to the lead.
+2. **Synthesize — lead only.** The lead reconciles the three reports into one plan and
+   resolves contradictions between them. Disagreement between workers is signal, not
+   noise: it usually marks the part a human should look at hardest.
+3. **Implement — one agent, alone.** A single worker writes the code against the plan
+   and runs the tests. One writer means no file conflicts and no overwrites.
+4. **Verify — 3 subagents in parallel, on the diff.** A security lens, a test-coverage
+   lens, and a "what is still mocked, stubbed, or hardcoded" lens. None of them may
+   edit code; they report findings only.
+5. **Report — lead only.** The lead writes the PR body: what changed, what the three
+   verifiers found, and the mandatory still-stubbed section. Findings the lead
+   dismisses are listed anyway, with the reason.
+
+The human then reviews a PR that arrives pre-critiqued from three angles, with
+disagreements surfaced rather than smoothed over. That is the point: not more PRs,
+better-annotated ones.
+
+### Subagents, not agent teams
+
+Subagents each get their own context window and report to the lead. Agent teams add
+direct teammate-to-teammate messaging and a shared task list — at significantly higher
+token cost, with an experimental flag, no session resumption, and an explicit warning
+against long unattended runs.
+
+The factory's workers do not need to talk to each other; they need to report to a
+lead. That is exactly the subagent model, so the factory uses subagents throughout.
+
+The one case that would justify teams is adversarial debugging — several agents
+holding competing hypotheses and actively trying to disprove each other, which beats
+sequential investigation because it defeats anchoring. That is a future L4, opened only
+when a real bug resists the normal loop, and never as an unattended cron job.
+
 ## The factory's brain
 
 A GitHub Actions runner sees only what is committed to a repository. It cannot read

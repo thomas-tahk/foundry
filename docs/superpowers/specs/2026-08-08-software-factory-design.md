@@ -279,7 +279,57 @@ That is the direction worth spending tokens on.
 | **L3 keep-warm** | Fan-out — one subagent per repo per check | Independent mechanical checks |
 | **Across approvals** | N approved issues run as N concurrent workflow runs | Job-level parallelism, free, already implied by the label trigger |
 
+### Budget: a $20 Pro subscription is the binding constraint
+
+The factory is built by someone on the $20 Pro plan: a 1× multiplier, a rolling
+five-hour window, and a weekly cap, with Claude Code usage drawing on the same pool
+as chat. That single fact drives every choice in this section.
+
+**The factory runs on a metered API key, not the subscription token.** Authenticating
+Actions with `CLAUDE_CODE_OAUTH_TOKEN` would make every overnight run compete with the
+next day's interactive work for the scarcest resource available. A pay-as-you-go key
+separates the budgets, makes factory spend independently visible, and gives it a hard
+ceiling that cannot eat into the user's own capacity.
+
+Estimated monthly cost at this scale — roughly **$12**, drawing nothing from Pro:
+
+| Loop | Model | Rough monthly |
+|---|---|---|
+| L0 census, 15 repos weekly | Haiku 4.5 | ~$0.50 |
+| L1 proposer, 3 repos, 3×/week | Sonnet 5 | ~$3.50 |
+| L2 builder, ~8 PRs | Sonnet 5 | ~$7.00 |
+| L3 keep-warm | mostly deterministic + Haiku | ~$0.50 |
+
+**Deterministic first, model second.** Most of L0 and L3 needs no model at all: stranded
+branches, CI status, dependency age, last-commit age, and unchecked boxes are all
+mechanically derivable — the existing `generate_report.py` already proves the pattern.
+Python gathers the facts; the model writes the narrative over facts already in hand. That
+keeps prompts small and puts the token spend only where judgment actually happens.
+
+**A model ladder, declared per loop.** `--model` in `claude_args` sets it per workflow:
+
+| Loop | Model | Why |
+|---|---|---|
+| L0 narrative | Haiku 4.5 | Summarizing pre-gathered facts, not reasoning |
+| L1 proposals | Sonnet 5 | Judgment about what is worth doing |
+| L2 implementation | Sonnet 5 | Escalates to Opus 5 only on a `factory:deep` label |
+| L3 checks | deterministic; Haiku for summaries | Mechanical |
+
 ### L2 in detail — lead and workers
+
+**Agent count is a dial, not a constant.** The seven-context pipeline below is a
+Max-plan shape; on Pro it would be unaffordable at any real volume. The profile is
+declared per repo, and a `factory:deep` label promotes a single issue one level:
+
+| Profile | Contexts | Shape |
+|---|---|---|
+| **`lean`** (default on Pro) | 2 | Lead + one implementer; the lead reviews the diff itself against the three lenses |
+| `standard` | 4 | Lead + implementer + two verifiers (security, still-stubbed) |
+| `full` | 7 | The complete pipeline below |
+
+Start at `lean`. Promote a specific issue with `factory:deep` when it touches something
+that genuinely warrants three reviewers; promote the whole repo only once the budget
+proves it is affordable.
 
 The session that receives the approved issue acts as lead. It never writes code itself.
 
@@ -302,6 +352,40 @@ The session that receives the approved issue acts as lead. It never writes code 
 The human then reviews a PR that arrives pre-critiqued from three angles, with
 disagreements surfaced rather than smoothed over. That is the point: not more PRs,
 better-annotated ones.
+
+### Model portability
+
+The factory should survive a change of model or provider — a cheaper option, a local
+one, or a different vendor entirely. One constraint shapes how:
+
+**Claude Code cannot be pointed at a non-Claude model.** The official gateway
+documentation states plainly that Anthropic "doesn't support routing Claude Code to
+non-Claude models through any gateway." Ollama and vLLM now expose Anthropic-compatible
+endpoints, so it may work in practice today — but it is unsupported and can break on any
+release. Do not build on it.
+
+So portability lives in the **assets**, not the runner:
+
+1. **Prompts are committed files**, not inline YAML strings — `.factory/prompts/l0-census.md`
+   and siblings. The workflow step reads a file; it does not embed the prompt.
+2. **The runner step is thin.** Swapping `anthropics/claude-code-action` for an
+   OpenCode, Aider, or Cline step is one YAML block per loop, against unchanged prompts.
+3. **Every artifact is model-agnostic** — issues, labels, PRs, `LESSONS.md`, `repos.txt`.
+   None of it encodes a vendor.
+
+This is the second reason GitHub Actions beat cloud Routines: Routines store their
+configuration in a web UI on one account, which is a lock-in the YAML approach avoids.
+
+**Where a cheaper or local model actually fits.** Open-weight coding models sit in the
+low 70s on SWE-bench Verified against the high-80s/mid-90s closed frontier — a gap that
+matters for writing code and barely matters for summarizing facts already gathered.
+So the seam is per loop, and it favours exactly the loops that run most often:
+
+| Loop | Open-weight viability |
+|---|---|
+| L0 census, L3 checks | **Good fit** — narration over deterministic facts. The natural first experiment |
+| L1 proposals | Marginal — judgment about what deserves building |
+| L2 implementation | Poor today — this is where the benchmark gap bites, and where "tests green" has to actually hold |
 
 ### Subagents, not agent teams
 

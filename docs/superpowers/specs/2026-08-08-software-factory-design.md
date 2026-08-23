@@ -541,7 +541,7 @@ The rails are these, and none of them is negotiable by the factory itself:
 | Secret | Where | What |
 |---|---|---|
 | `FACTORY_GH_TOKEN` | hub | Fine-grained PAT, selected repos: Issues RW, Contents R, Pull requests R, Actions R |
-| `CLAUDE_CODE_OAUTH_TOKEN` | hub + each elected repo | From `claude setup-token`. Bills to the Max subscription, not the API |
+| `ANTHROPIC_API_KEY` | hub + each elected repo | Metered pay-as-you-go key. Keeps factory spend off the Pro subscription — see §Budget |
 
 The hub's default `GITHUB_TOKEN` is scoped to the hub repo alone and **cannot** open
 issues in other repositories. That constraint is why the PAT exists. Elected repos'

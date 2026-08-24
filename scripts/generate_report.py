@@ -103,7 +103,6 @@ def build_report(data, now, start):
     date_range = f"{start.strftime('%b %d')} – {now.strftime('%b %d, %Y')}"
     active = sorted((d for d in data if d["commits"]),
                     key=lambda d: len(d["commits"]), reverse=True)
-    stale = [d["repo"] for d in data if not d["commits"]]
     total = sum(len(d["commits"]) for d in data)
 
     out = [f"# Weekly Activity Report — {date_range} ({label})", ""]
@@ -132,9 +131,6 @@ def build_report(data, now, start):
                 f"#{i['number']} {i['title']}" for i in d["issues"]))
 
     out += ["", "## Flags", ""]
-    out.append("**Stale (no commits this week):** "
-               + (", ".join(stale) if stale else "none"))
-    out.append("")
     attention = []
     for d in data:
         bits = []

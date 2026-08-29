@@ -42,7 +42,10 @@ def duplicate_issues(issues, repo, keep):
 
 def run(args, **kwargs):
     """Run a gh command, raising on failure so the workflow fails loudly."""
-    return subprocess.run(args, check=True, text=True, capture_output=True, **kwargs)
+    result = subprocess.run(args, text=True, capture_output=True, **kwargs)
+    if result.returncode != 0:
+        raise RuntimeError(f"{' '.join(args[:4])} failed: {result.stderr.strip()}")
+    return result
 
 
 def existing_issues(repo):
@@ -54,10 +57,12 @@ def existing_issues(repo):
 
 def ensure_label(repo):
     """Create the label if absent; a repeat run is a harmless no-op."""
-    subprocess.run(["gh", "label", "create", LABEL, "--repo", f"{OWNER}/{repo}",
-                    "--color", "1D76DB", "--description",
-                    "The single pinned Resume issue, rewritten weekly by L0"],
-                   text=True, capture_output=True)
+    result = subprocess.run(["gh", "label", "create", LABEL, "--repo", f"{OWNER}/{repo}",
+                             "--color", "1D76DB", "--description",
+                             "The single pinned Resume issue, rewritten weekly by L0"],
+                            text=True, capture_output=True)
+    if result.returncode != 0 and "already exists" not in result.stderr:
+        raise RuntimeError(f"label create failed for {repo}: {result.stderr.strip()}")
 
 
 def publish(repo, body):

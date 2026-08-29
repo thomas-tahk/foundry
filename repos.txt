@@ -7,14 +7,12 @@ TTunes
 priority-post
 knowflow
 pocket-draft
-kb-helper
 thomas-tahk-portfolio-game
 llm-plays-sc
 job-app-dispatch
 shows-for-us
 amugonna
 ai-advisor
-Dormant
 ez-golf
 pwp-rts-timeline
 esports-tldr

@@ -1,0 +1,6 @@
+# Build tier: repos where the factory may propose (L1), build (L2), and keep warm (L3).
+# A strict subset of repos.txt. Same rules: one repo name per line, # starts a comment.
+# Adding a line here is the election. Keep this list short — the binding constraint is
+# review capacity, not agent throughput.
+
+pocket-draft

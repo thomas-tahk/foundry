@@ -1,0 +1,46 @@
+name: Factory L0 — Census
+
+on:
+  schedule:
+    # 06:00 UTC Monday, one hour after the weekly report.
+    - cron: "0 6 * * 1"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: factory-census
+  cancel-in-progress: false
+
+jobs:
+  census:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Stage 1 — deterministic facts. No model, no judgment.
+      - name: Gather facts
+        env:
+          GITHUB_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: python3 -m scripts.census_facts
+
+      # Stage 2 — narrative only. Deliberately given no token: this step must not
+      # be able to reach the GitHub API, so a bad run cannot half-write an issue.
+      - name: Write narratives
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Follow the instructions in .factory/prompts/l0-census.md exactly.
+          claude_args: |
+            --max-turns 40
+            --model claude-haiku-4-5-20251001
+            --allowedTools Read,Write,Glob,Grep
+
+      # Stage 3 — publish. Fails loudly if Stage 2 wrote nothing.
+      - name: Publish Resume issues
+        env:
+          GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: python3 -m scripts.census_publish

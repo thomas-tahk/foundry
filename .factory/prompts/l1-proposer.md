@@ -38,8 +38,14 @@ When a citation comes from an unmerged branch, name the branch in the citation.
 For each eligible repo, either write `propose/out/<repo>.md` — one proposal — or write
 nothing for that repo. Do not create issues; a later step publishes these files.
 
-**Writing nothing is a correct, expected outcome.** If no step survives verification,
-say so in your final message and move on. A thin proposal is worse than no proposal:
+**Writing nothing is a correct, expected outcome** — but never a silent one. Whenever
+you write no proposal for an eligible repo, write `propose/notes/<repo>.md` instead:
+two or three sentences naming each step you considered and the specific reason you
+rejected it (stale, declined, contradicts a decision, blocked on the user). The user
+reads these to tell restraint apart from failure, so a run that writes neither a
+proposal nor a note is a broken run.
+
+A thin proposal is worse than no proposal:
 the user's review capacity is the scarcest thing in this system.
 
 ## Choosing which step to promote
@@ -110,8 +116,9 @@ in that shape. One source, one live proposal, ever.
 - **Verify before citing.** Open the file. A line number you guessed is a lie with a
   citation attached.
 - **Escalate instead of guessing.** If the step needs a decision only the user can make,
-  write no proposal and name the question in your final message — that becomes a
-  `factory:blocked` issue, not a proposal.
+  write no proposal and name the question in `propose/notes/<repo>.md`. Notes are
+  printed in the run log, not opened as issues — so state the question plainly enough
+  that the user can answer it from the log alone.
 - **Never contradict `LESSONS.md` silently.** A proposal that goes against a recorded
   lesson must say so and argue the case, or not be written.
 - **Respect `PROJECTS.md` scope.** A repo whose entry says work is out of scope, or

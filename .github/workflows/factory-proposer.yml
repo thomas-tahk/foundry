@@ -86,6 +86,19 @@ jobs:
             --allowedTools Read,Write,Glob,Grep
 
       # Stage 3 — publish. Re-checks every guard against live state before opening.
+      # A run that proposes nothing must still say why, in the log the user reads.
+      - name: Report skipped repos
+        if: always()
+        run: |
+          if [ -d propose/notes ] && [ -n "$(ls -A propose/notes 2>/dev/null)" ]; then
+            for f in propose/notes/*.md; do
+              echo "--- $(basename "$f" .md): no proposal ---"
+              cat "$f"
+            done
+          else
+            echo "No skip notes written."
+          fi
+
       - name: Publish proposals
         env:
           GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}

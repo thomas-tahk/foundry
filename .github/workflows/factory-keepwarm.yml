@@ -44,6 +44,19 @@ jobs:
 
       # Stage 3 — the same publisher L1 uses, so both loops obey one cap and one
       # Source: dedupe.
+      # A run that proposes nothing must still say why, in the log the user reads.
+      - name: Report skipped repos
+        if: always()
+        run: |
+          if [ -d warm/notes ] && [ -n "$(ls -A warm/notes 2>/dev/null)" ]; then
+            for f in warm/notes/*.md; do
+              echo "--- $(basename "$f" .md): no proposal ---"
+              cat "$f"
+            done
+          else
+            echo "No skip notes written."
+          fi
+
       - name: Publish proposals
         env:
           GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}

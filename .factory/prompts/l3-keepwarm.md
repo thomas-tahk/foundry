@@ -46,6 +46,12 @@ Take the highest one that is present. One repo, one proposal, per run.
 3. **A stale Dependabot PR.** Only when nothing above is present. Group them into one
    proposal; never open one per PR.
 
+## When you write nothing
+
+Writing nothing is correct whenever no friction clears the bar — but never silent.
+Write `warm/notes/<repo>.md` naming the signals you saw and why none earned a proposal.
+A run that writes neither a proposal nor a note is a broken run.
+
 ## What you must not do
 
 - **Never propose deleting, closing, or abandoning a branch.** Commits ahead of the

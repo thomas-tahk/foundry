@@ -1,0 +1,20 @@
+name: Factory — Sync labels
+
+# Manual. L2 fires on `issues.labeled`, so the vocabulary has to exist in a repo
+# before it can be elected. Run this once after adding a line to elected.txt.
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  labels:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Sync the factory label vocabulary
+        env:
+          GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: python3 -m scripts.factory_labels

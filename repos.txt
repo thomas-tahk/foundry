@@ -9,7 +9,6 @@ knowflow
 pocket-draft
 thomas-tahk-portfolio-game
 llm-plays-sc
-job-app-dispatch
 shows-for-us
 amugonna
 ai-advisor

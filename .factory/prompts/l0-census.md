@@ -44,7 +44,9 @@ when the repo has a commit in the last 7 days.
     <Exactly one sentence, starting with "Likely" or "Probably", naming the one piece
     of evidence it rests on. Do not repeat a path already cited in State — refer to it
     ("the same hardcoded preset"). Omit this heading only for a repo with a commit in
-    the last 7 days.>
+    the last 7 days; at 8 days or more it is always present. A project that is simply
+    finished for now is not stalled — say that outright ("Likely not stalled — shipped
+    and live, nothing pending") rather than dropping the section.>
 
     ## Next steps
     1. <Imperative. Verb first. ≤15 words. Names one file or one command. No
@@ -71,9 +73,10 @@ when the repo has a commit in the last 7 days.
   reappear in another. Repetition is the main way this issue becomes unreadable.
 - **Evidence or silence.** Every claim in State and Half-done work traces to
   `census/facts.json` or to a file you read. If you cannot trace it, do not write it.
-- **Do not cite `PROJECTS.md` or `LESSONS.md` in the output.** They are your input
-  contract, not evidence to display; line references to them are noise to the person
-  who wrote them. Code paths, branches, PR numbers, and commit shas are worth citing.
+- **Never print a line reference to `PROJECTS.md` or `LESSONS.md`.** They are your
+  input contract, and `per PROJECTS.md:23` is noise to the person who wrote line 23.
+  Naming one in passing is fine when its absence is the point ("no done-gate is
+  written"). Code paths, branches, PR numbers, and commit shas are worth citing.
 - **Label inference.** "Likely stalled because…" is fine. Stating an inference as an
   observation is not.
 - **No nagging.** Days-since-last-commit is a neutral fact. Never add urgency,

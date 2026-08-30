@@ -18,20 +18,32 @@ OWNER = "thomas-tahk"
 DAYS = 7
 API = "https://api.github.com"
 TOKEN = os.environ.get("GITHUB_TOKEN", "")
-REPO_LIST_FILE = Path(__file__).resolve().parent.parent / "repos.txt"
+HUB_ROOT = Path(__file__).resolve().parent.parent
+REPO_LIST_FILE = HUB_ROOT / "repos.txt"
+ELECTED_LIST_FILE = HUB_ROOT / "elected.txt"
 
 
-def load_repos():
-    """Read the project list from repos.txt (one name per line, # = comment)."""
-    if not REPO_LIST_FILE.exists():
-        print(f"  ! {REPO_LIST_FILE.name} not found; no projects to report.")
+def load_list(path):
+    """Read a repo list file (one name per line, # = comment)."""
+    if not path.exists():
+        print(f"  ! {path.name} not found; no projects to read.")
         return []
     repos = []
-    for line in REPO_LIST_FILE.read_text().splitlines():
+    for line in path.read_text().splitlines():
         name = line.split("#", 1)[0].strip()
         if name:
             repos.append(name)
     return repos
+
+
+def load_repos():
+    """Every tracked project — the census list."""
+    return load_list(REPO_LIST_FILE)
+
+
+def load_elected():
+    """The build tier: repos where the factory may propose, build, and keep warm."""
+    return load_list(ELECTED_LIST_FILE)
 
 
 def gh(path, params=None):

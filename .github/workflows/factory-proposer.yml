@@ -1,0 +1,63 @@
+name: Factory L1 — Proposer
+
+on:
+  schedule:
+    # 06:00 UTC Tue/Thu/Sat. Proposals land before the workday, not during it.
+    - cron: "0 6 * * 2,4,6"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: factory-proposer
+  cancel-in-progress: false
+
+jobs:
+  propose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      # Stage 1 — eligibility. No model: the cap, the declined list, and the
+      # duplicate-source check are arithmetic, not judgment.
+      - name: Check eligibility
+        env:
+          GITHUB_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: python3 -m scripts.propose_facts
+
+      # L1's evidence rule requires reading real code, which L0 never needs. Public
+      # repos, shallow clones, read-only: the narrator verifies claims against files
+      # rather than re-wording L0's summary of them.
+      - name: Check out elected repos
+        env:
+          GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: |
+          mkdir -p work
+          python3 -c 'from scripts.generate_report import load_elected; print("\n".join(load_elected()))' \
+            | while read -r repo; do
+            [ -z "$repo" ] && continue
+            echo "- cloning $repo"
+            gh repo clone "thomas-tahk/$repo" "work/$repo" -- --depth 50 --quiet
+          done
+
+      # Stage 2 — judgment. Deliberately given no token: this step must not be able
+      # to reach the GitHub API, so a bad run cannot half-open an issue.
+      - name: Write proposals
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Follow the instructions in .factory/prompts/l1-proposer.md exactly.
+          claude_args: |
+            --max-turns 60
+            --model claude-sonnet-5
+            --allowedTools Read,Write,Glob,Grep
+
+      # Stage 3 — publish. Re-checks every guard against live state before opening.
+      - name: Publish proposals
+        env:
+          GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: python3 -m scripts.propose_publish

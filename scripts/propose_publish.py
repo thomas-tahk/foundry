@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-"""Stage 3 of the L1 proposer: publish one proposal per eligible repo.
+"""Stage 3 of the L1 proposer and of L3 keep-warm: publish one proposal per repo.
 
-Reads the Markdown Stage 2 wrote to propose/out/<repo>.md and opens it as a
+Both loops share this publisher, which is how they share one 2-per-repo cap and
+one Source: dedupe rather than getting a queue each. L1 writes propose/out/,
+L3 writes warm/out/; pass --dir to choose.
+
+Reads the Markdown Stage 2 wrote to <dir>/<repo>.md and opens it as a
 `factory:proposed` issue. Every guard Stage 1 applied is re-applied here against
 live state: the model has no token and no way to bypass the cap, and a proposal
 whose Source is already taken or already declined is dropped, not opened.
@@ -83,12 +87,21 @@ def publish_one(path):
     return True
 
 
+def parse_args(argv):
+    """The directory of proposals to publish. L1 writes one, L3 the other."""
+    if len(argv) >= 2 and argv[0] == "--dir":
+        return Path(argv[1])
+    if argv:
+        raise SystemExit(f"usage: {sys.argv[0]} [--dir <path>]")
+    return Path("propose/out")
+
+
 def main():
-    out_dir = Path("propose/out")
+    out_dir = parse_args(sys.argv[1:])
     paths = sorted(out_dir.glob("*.md")) if out_dir.is_dir() else []
     if not paths:
         # A silent run is the correct outcome when nothing is worth promoting.
-        print("No proposals written. Nothing to publish.")
+        print(f"No proposals in {out_dir}. Nothing to publish.")
         return
     print(f"Publishing {len(paths)} proposal(s)")
     opened = sum(publish_one(p) for p in paths)

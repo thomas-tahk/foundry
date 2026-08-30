@@ -1,0 +1,50 @@
+name: Factory L3 — Keep-warm
+
+on:
+  schedule:
+    # 06:00 UTC Wednesday, between the Tue/Thu proposer runs.
+    - cron: "0 6 * * 3"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: factory-keepwarm
+  cancel-in-progress: false
+
+jobs:
+  keepwarm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      # Stage 1 — friction. Entirely mechanical: CI state, branch age, PR age.
+      # It also reads L1's cap, so the two loops share one queue rather than
+      # getting two each.
+      - name: Gather friction
+        env:
+          GITHUB_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: python3 -m scripts.warm_facts
+
+      # Stage 2 — narrative over facts already in hand, so Haiku is enough.
+      # No token: this step must not be able to reach the GitHub API.
+      - name: Write proposals
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Follow the instructions in .factory/prompts/l3-keepwarm.md exactly.
+          claude_args: |
+            --max-turns 30
+            --model claude-haiku-4-5-20251001
+            --allowedTools Read,Write,Glob,Grep
+
+      # Stage 3 — the same publisher L1 uses, so both loops obey one cap and one
+      # Source: dedupe.
+      - name: Publish proposals
+        env:
+          GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: python3 -m scripts.propose_publish --dir warm/out

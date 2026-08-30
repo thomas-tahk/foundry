@@ -31,6 +31,12 @@ jobs:
       # L1's evidence rule requires reading real code, which L0 never needs. Public
       # repos, shallow clones, read-only: the narrator verifies claims against files
       # rather than re-wording L0's summary of them.
+      #
+      # --no-single-branch, because the user's design work lives on the branches they
+      # paused. L1's first live run proposed bespoke per-card effect code for
+      # pocket-draft while a spec locking the opposite approach sat on an unmerged
+      # branch it could not see. Intent is read from every branch; current code state
+      # is still read from the default branch.
       - name: Check out elected repos
         env:
           GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
@@ -40,7 +46,30 @@ jobs:
             | while read -r repo; do
             [ -z "$repo" ] && continue
             echo "- cloning $repo"
-            gh repo clone "thomas-tahk/$repo" "work/$repo" -- --depth 50 --quiet
+            gh repo clone "thomas-tahk/$repo" "work/$repo" -- \
+              --depth 50 --no-single-branch --quiet
+
+            # Stage 2 runs without Bash, so it cannot query git. Export each
+            # non-default branch's documentation to a path it can simply Read.
+            # One archive call per path: `git archive` aborts on the whole pathspec
+            # if any single entry is missing, and most repos lack at least one.
+            default=$(git -C "work/$repo" symbolic-ref --short refs/remotes/origin/HEAD \
+              | sed 's|^origin/||')
+            git -C "work/$repo" for-each-ref --format='%(refname:short)' refs/remotes/origin \
+              | sed 's|^origin/||' | grep -vxE "HEAD|origin|$default" | while read -r br; do
+              dest="work/$repo/.branches/$br"
+              mkdir -p "$dest"
+              for path in docs README.md CLAUDE.md CONTEXT.md AGENTS.md; do
+                git -C "work/$repo" archive "origin/$br" "$path" 2>/dev/null \
+                  | tar -x -C "$dest" 2>/dev/null || true
+              done
+              if [ -n "$(ls -A "$dest" 2>/dev/null)" ]; then
+                echo "  branch docs: $repo/$br"
+              else
+                rmdir "$dest" 2>/dev/null || true
+              fi
+            done
+            rmdir "work/$repo/.branches" 2>/dev/null || true
           done
 
       # Stage 2 — judgment. Deliberately given no token: this step must not be able

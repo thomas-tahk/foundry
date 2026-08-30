@@ -33,11 +33,6 @@ Format:
 **Stands:** `README.md` states "brainstorming/design phase"; TypeScript, last pushed 2026-07-14. No shipped surface.
 **Done-gate:** not yet stated.
 
-## kb-helper
-**Is:** Offline single-file HTML tool for cleaning up ServiceNow KB articles (checks, clean, diff, cover note).
-**Stands:** Deployed to GitHub Pages for team testing; deliberately never integrates with ServiceNow, so it is always an extra manual step.
-**Done-gate:** A teammate pastes a real KB article into the live Pages URL and gets back cleaned text plus a diff they trust enough to paste into ServiceNow.
-
 ## thomas-tahk-portfolio-game
 **Is:** Interactive 2D portfolio site — visitors explore About/Skills/Experience/Projects by moving a character (React 19 + Vite + Kaplay + Jotai, per `README.md`).
 **Stands:** Live on GitHub Pages; character movement is reported broken on the deployed site while working locally. Last pushed 2026-05-23.
@@ -47,11 +42,6 @@ Format:
 **Is:** An LLM acting as strategist over a hand-coded execution layer to play StarCraft: Brood War (Java/Kotlin JBWAPI bot, Python strategist, JSON-over-socket IPC).
 **Stands:** Design only — no bot code exists. `CLAUDE.md` names the single open spike: JBWAPI hello-world on Windows then Linux (ADR-0006), runbook at `docs/setup/windows-spike-runbook.md`.
 **Done-gate:** A worker mines and a building constructs under our control in a live StarCraft game.
-
-## job-app-dispatch
-**Is:** Go daemon + Python subprocess job-search automation — scrapes ATS APIs, scores results, generates cover letters, web UI for human review.
-**Stands:** `README.md` line 3: "Archived. Not actively maintained. Does not work reliably end-to-end." The user adopted `santifer/career-ops` instead.
-**Done-gate:** none — the project is retired by its own README. Do not propose work here.
 
 ## shows-for-us
 **Is:** Full-stack app for tracking traveling musical performances and cast members in the US (React + Vite + TS, Express, Supabase, Ticketmaster API).
@@ -66,11 +56,6 @@ Format:
 ## ai-advisor
 **Is:** not yet characterised — repo description is "a template"; README is the unmodified `create-next-app` boilerplate.
 **Stands:** No project-specific content committed. Last pushed 2026-04-01.
-**Done-gate:** not yet stated.
-
-## Dormant
-**Is:** not yet characterised — README is the unmodified `create-next-app` boilerplate.
-**Stands:** No project-specific content committed. Last pushed 2026-03-23.
 **Done-gate:** not yet stated.
 
 ## ez-golf

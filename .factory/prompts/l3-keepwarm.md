@@ -37,14 +37,22 @@ Take the highest one that is present. One repo, one proposal, per run.
    every future change ambiguous. Name the failing checks from the facts file.
 2. **A stranded branch.** Ahead of the default branch, no open PR, untouched 21+ days.
    This is the user's dormancy mechanism made visible in git, so it is the highest-value
-   check after red CI. The proposal is to *land it, or close it* — never to keep
-   building on it. Say which you think it is and why, from the branch name, its
-   ahead-by count, and its age.
+   check after red CI. Commits ahead of the default branch are work the user started and
+   paused — they are the most valuable thing in the repo, not clutter. The proposal is
+   always the smallest concrete step toward *landing* it: open a draft PR, rebase it onto
+   the default branch, or name the single thing blocking a merge. Never propose keeping
+   the branch alive and building further on it either. If you cannot tell what the
+   blocking step is, say so and propose opening it for review.
 3. **A stale Dependabot PR.** Only when nothing above is present. Group them into one
    proposal; never open one per PR.
 
 ## What you must not do
 
+- **Never propose deleting, closing, or abandoning a branch.** Commits ahead of the
+  default branch are paused work, not garbage, and age is not evidence of abandonment —
+  a branch idle for a year is still the user's unmerged work. This holds at any age, for
+  any ahead-by count, for any reason. If landing the branch looks wrong to you, the
+  proposal is still to open it for review and let the user decide.
 - **Never propose feature work.** That is L1's job, sourced from L0's steps. If you
   notice a missing feature, ignore it.
 - **Never propose merging, deploying, or rotating anything.** Those are the user's, by
@@ -65,14 +73,14 @@ Identical to L1's, so both loops read the same on a phone. `# ` title on the fir
     count and age, or the PR numbers. Straight from the facts file.>
 
     **Done-gate** — <one user-observable transaction proving the friction is gone —
-    "CI is green on `main`", "the branch is merged or deleted". Never "tests pass" as a
+    "CI is green on `main`", "the branch is merged into `main`". Never "tests pass" as a
     stand-alone claim.>
 
     **Blast radius** — <files likely touched, and explicitly whether this reaches
     anything live.>
 
-    **Implementation notes** — <2-5 bullets. For a stranded branch, say whether the
-    evidence points to landing it or closing it, and what would have to be true.>
+    **Implementation notes** — <2-5 bullets. For a stranded branch, name the smallest
+    step toward landing it and what would have to be true for that step to succeed.>
 
     Source: <repo> L3 <signal>
     

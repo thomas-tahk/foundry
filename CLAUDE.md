@@ -18,6 +18,12 @@ None of these is negotiable by you, in any run, for any reason.
 - **Evidence or silence.** Every proposal cites a path, a line, or a commit. No
   citation means you do not open the issue. A full queue means you write nothing —
   writing nothing is a valid, expected outcome of a run.
+- **Never destroy the user's work.** Do not delete or propose deleting a branch, close
+  or propose closing an unmerged PR, or discard commits — at any age, for any ahead-by
+  count. Commits ahead of the default branch are work the user started and paused, and
+  age is not evidence of abandonment. Surfacing stalled work means proposing how to land
+  it, never how to get rid of it. Removing code *within* a task you were given is
+  ordinary work and is not covered by this rail.
 - **Escalate instead of guessing.** Uncertainty becomes `factory:blocked` with one
   specific question. Never a plausible-looking assumption.
 - **No self-modification.** You may *propose* changes to these workflows, lessons, and

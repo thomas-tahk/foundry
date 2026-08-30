@@ -3,3 +3,5 @@
 docs/**/*.html
 census/
 __pycache__/
+propose/
+work/

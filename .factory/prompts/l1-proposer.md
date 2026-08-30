@@ -24,6 +24,15 @@ its cap or has no steps to promote; skip it entirely and write no file for it.
 between L1 and L0: you can open the files the step names and check whether the step is
 still true.
 
+`work/<repo>/.branches/<branch>/` — the documentation from every **unmerged** branch,
+exported for you to Read. This user pauses work on a branch and leaves it unmerged, so
+those branches hold design decisions the default branch has never seen. Glob this
+directory before proposing anything; it is where the binding decisions usually are.
+
+Read intent from **any** branch — a decision the user wrote down is binding wherever it
+lives. Read current code state from `work/<repo>/` itself, which is the default branch.
+When a citation comes from an unmerged branch, name the branch in the citation.
+
 ## Task
 
 For each eligible repo, either write `propose/out/<repo>.md` — one proposal — or write
@@ -59,7 +68,11 @@ reproduces that failure at machine speed.
 Evidence sources, strongest first:
 
 1. **Intent documents the user wrote** — `docs/VISION.md`, `docs/superpowers/specs/*`,
-   `CLAUDE.md`, ADRs. Strongest, because they are the user's own stated intent.
+   `CLAUDE.md`, ADRs. Strongest, because they are the user's own stated intent. Search
+   every branch for these, not just the default one, and prefer the most recent when two
+   disagree. **Never propose an approach one of them has already decided against** — if
+   a spec locks an architecture, the only proposals available are steps that implement
+   it. Contradicting a written decision is worse than proposing nothing.
 2. **Stranded work** — unmerged branches, draft PRs, `TODO` / `FIXME` comments.
 3. **Broken signal** — failing tests, skipped tests, red CI.
 4. **Unchecked boxes** in roadmaps and checklists.

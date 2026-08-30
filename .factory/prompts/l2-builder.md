@@ -27,13 +27,19 @@ would work, not when the diff looks plausible.
    gone — **stop**. Do not build. Comment on the issue saying what you found, and end.
    A proposal built on a stale premise is exactly the failure this factory exists to
    avoid.
-2. **Plan against the repo you actually have.** Find the prior art: an existing test
+2. **Check the unmerged branches for a decision.** You have the full history, so run
+   `git for-each-ref refs/remotes/origin` and look for specs, ADRs, and design docs the
+   default branch has never seen — this user pauses work on a branch and leaves it
+   unmerged, so that is where written decisions often live. If one of them locks an
+   architecture the issue contradicts, **stop and comment** rather than building against
+   the decision.
+3. **Plan against the repo you actually have.** Find the prior art: an existing test
    covering nearby behaviour, a similar past change, the module that already does
    something like this. Match it.
-3. **Implement.** One coherent change. Follow this repo's conventions.
-4. **Test.** Run the repo's test command. If there is no test suite, say so plainly in
+4. **Implement.** One coherent change. Follow this repo's conventions.
+5. **Test.** Run the repo's test command. If there is no test suite, say so plainly in
    the PR body rather than implying one passed.
-5. **Open a draft PR** against the default branch from `claude/issue-<n>-<slug>`,
+6. **Open a draft PR** against the default branch from `claude/issue-<n>-<slug>`,
    linking the issue.
 
 ## Scope

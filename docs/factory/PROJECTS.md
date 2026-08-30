@@ -9,13 +9,16 @@ Format:
     ## <repo>
     **Is:** <one line — what the thing is>
     **Stands:** <one line — the current state, with a citation: a branch, a path, a PR>
+    **Decided:** <optional — an architecture the user has already locked, and where they
+    wrote it down. Never propose an approach that contradicts one of these.>
     **Done-gate:** <one user-observable transaction that proves it works>
 
 ---
 
 ## pocket-draft
 **Is:** Pokémon TCG Pocket draft tool plus a Go rules engine that plays drafted decks.
-**Stands:** `feat/draft-mode-flow` is 21 commits ahead of `main` and contains all of PR #1; the draft → deckbuild → play loop runs end to end locally, but the opponent still plays a hardcoded preset (`server/carddata.go:185-190`) and no card effects exist (`engine/types.go:63` — "Vanilla cards have only this — no special text").
+**Stands:** `feat/draft-mode-flow` is 21 commits ahead of `main`, open as draft PR #7, and contains all of the stale PR #1; the draft → deckbuild → play loop runs end to end locally, but the opponent still plays a hardcoded preset (`server/carddata.go:185-190`) and no card effects exist (`engine/types.go:63` — "Vanilla cards have only this — no special text").
+**Decided:** Card effects use **Approach A — a shared primitive toolbox**: an attack's effect is an ordered list of `EffectOp` structs (data, not bespoke per-card code), locked by `docs/superpowers/specs/2026-07-13-effect-engine-slice-1-design.md` on `feat/draft-mode-flow`. Slice 1 is already scoped there: 6 verbs across Sneasel, Petilil, Ponyta, Indeedee ex, Munchlax. Never propose per-card effect code or a per-ID effect map.
 **Done-gate:** I open the live site, draft a deck, play a run against a bot drafted from the same pool where cards do what their text says, and my run record persists.
 
 ## knowflow

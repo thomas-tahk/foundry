@@ -58,3 +58,9 @@ which and why in the PR body. Append-only is how a brain becomes a swamp.
     work. Hold the intent firm, keep the stack loose, improve from there.
 16. **For visual work, build it and run it.** Do not seek approval on prose or tables
     describing a UI — produce the running thing.
+17. **A refusal names the work, not where it came from.** Declines used to key on a
+    proposal's `Source:` — a step number or a branch. Both outlive what they pointed
+    at: L0 renumbers the Resume issue weekly, and one branch is the origin of many
+    possible proposals. One "no" silenced every later proposal that shared an origin,
+    including work the user had explicitly asked for. Key a refusal on the thing
+    refused.

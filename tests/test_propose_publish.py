@@ -3,7 +3,11 @@ import unittest
 
 from scripts.propose_publish import rejection, split_title
 
-STATE = {"at_cap": False, "taken_sources": [], "declined_sources": []}
+STATE = {"at_cap": False, "taken_sources": [], "declined": []}
+
+
+def declined(*titles):
+    return [{"title": t, "source": "r#7 step 1"} for t in titles]
 
 
 def state(**overrides):
@@ -37,9 +41,36 @@ class Rejection(unittest.TestCase):
                                           state(at_cap=True)))
 
     def test_previously_declined_work_is_never_reproposed(self):
-        reason = rejection("r", "Title", "r#7 step 1",
-                           state(declined_sources=["r#7 step 1"]))
+        reason = rejection("r", "Add a card effect type", "r#7 step 1",
+                           state(declined=declined("Add a card effect type")))
         self.assertIn("declined", reason)
+
+    def test_a_decline_ignores_wording_it_does_not_own(self):
+        """Casing and punctuation are not what the user turned down."""
+        reason = rejection("r", "Add a Card Effect Type!", "r#7 step 1",
+                           state(declined=declined("add a card effect type")))
+        self.assertIn("declined", reason)
+
+    def test_a_new_task_at_a_declined_steps_old_number_is_allowed(self):
+        """L0 renumbers the Resume issue weekly. The number is not the work.
+
+        Declining "Add a card effect type" at step 2 must not silence whatever
+        step 2 becomes next week.
+        """
+        self.assertIsNone(
+            rejection("r", "Draft the bot's deck from the shared pool", "r#7 step 2",
+                      state(declined=[{"title": "Add a card effect type",
+                                       "source": "r#7 step 2"}])))
+
+    def test_a_different_action_on_a_declined_signal_is_allowed(self):
+        """One refusal about a branch does not settle the branch.
+
+        L3 keys on a friction signal; declining "close it" must leave "land it" open.
+        """
+        self.assertIsNone(
+            rejection("r", "Land feat/draft-mode-flow", "r L3 stranded/feat/draft-mode-flow",
+                      state(declined=[{"title": "Close feat/draft-mode-flow branch",
+                                       "source": "r L3 stranded/feat/draft-mode-flow"}])))
 
     def test_a_source_with_a_live_proposal_is_dropped(self):
         reason = rejection("r", "Title", "r#7 step 1",
@@ -49,7 +80,7 @@ class Rejection(unittest.TestCase):
     def test_declined_outranks_taken(self):
         reason = rejection("r", "Title", "r#7 step 1",
                            state(taken_sources=["r#7 step 1"],
-                                 declined_sources=["r#7 step 1"]))
+                                 declined=declined("Title")))
         self.assertIn("declined", reason)
 
 

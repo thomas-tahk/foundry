@@ -2,13 +2,14 @@
 """Stage 3 of the L1 proposer and of L3 keep-warm: publish one proposal per repo.
 
 Both loops share this publisher, which is how they share one 2-per-repo cap and
-one Source: dedupe rather than getting a queue each. L1 writes propose/out/,
+one dedupe rather than getting a queue each. L1 writes propose/out/,
 L3 writes warm/out/; pass --dir to choose.
 
 Reads the Markdown Stage 2 wrote to <dir>/<repo>.md and opens it as a
 `factory:proposed` issue. Every guard Stage 1 applied is re-applied here against
 live state: the model has no token and no way to bypass the cap, and a proposal
-whose Source is already taken or already declined is dropped, not opened.
+whose Source is already taken, or whose title the user already declined, is
+dropped rather than opened.
 """
 import json
 import re
@@ -21,6 +22,7 @@ from scripts.propose_facts import (
     OPEN_PROPOSAL_CAP,
     PROPOSED,
     extract_source,
+    normalize_title,
     repo_proposal_state,
 )
 
@@ -62,8 +64,8 @@ def rejection(repo, title, source, state):
         return "no `Source:` line — the evidence rule is not optional"
     if state["at_cap"]:
         return f"queue filled to {OPEN_PROPOSAL_CAP} since Stage 1"
-    if source in state["declined_sources"]:
-        return f"source was declined before: {source}"
+    if normalize_title(title) in {normalize_title(d["title"]) for d in state["declined"]}:
+        return f"the user declined this work before: {title}"
     if source in state["taken_sources"]:
         return f"source already has an open proposal: {source}"
     return None

@@ -14,8 +14,9 @@ One generator (L0), one refiner (you), one queue. A second backlog is a failure.
 ## Input
 
 `propose/facts.json` — per elected repo: the L0 Resume issue number, its parsed
-`next_steps`, how many proposals are already open against the cap, and the `Source:`
-strings of proposals already taken or already declined.
+`next_steps`, how many proposals are already open against the cap, the `Source:`
+strings of proposals already open, and `declined` — every proposal the user turned
+down, by title.
 
 **Only act on repos where `eligible` is `true`.** A repo with `eligible: false` is at
 its cap or has no steps to promote; skip it entirely and write no file for it.
@@ -57,7 +58,13 @@ Work through L0's steps in order and take the first that passes all of these:
    step is stale — skip it and say so.
 2. **It is one sitting of work.** A step that needs a design decision from the user is
    not a proposal; it is a `factory:blocked` question.
-3. **Its `Source:` is not already taken or declined** in `propose/facts.json`.
+3. **Its `Source:` is not already taken** in `propose/facts.json`, and the work is
+   not something the user already declined. Read `declined` and match on *the work*,
+   not the wording: never re-open a declined proposal, and never re-open the same work
+   under a reworded title. A decline is about that piece of work only — never about
+   the step number it came from. Steps are renumbered every time L0 rewrites the
+   Resume issue, so a different task now sitting at a declined step's old position is
+   fair game, and you should treat it as such.
 4. **It has a done-gate you can state as one user-observable transaction.** If you
    cannot say what the user would *see* that proves it worked, do not propose it.
 

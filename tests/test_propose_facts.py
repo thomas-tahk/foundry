@@ -98,13 +98,26 @@ class RepoProposalState(unittest.TestCase):
         self.assertTrue(state["at_cap"])
         self.assertEqual(state["taken_sources"], ["a", "b"])
 
-    def test_declined_sources_are_collected(self):
+    def test_declines_are_collected_by_title(self):
+        """The title is the dedupe key; the source is carried for the model to read."""
         self.responses = {
             "factory:resume": [{"number": 7, "body": RESUME_BODY}],
-            "factory:declined": [{"number": 3, "body": "Source: pocket-draft#7 step 1"}],
+            "factory:declined": [{"number": 3, "title": "Add a card effect type",
+                                  "body": "Source: pocket-draft#7 step 1"}],
         }
         state = repo_proposal_state("pocket-draft")
-        self.assertEqual(state["declined_sources"], ["pocket-draft#7 step 1"])
+        self.assertEqual(state["declined"],
+                         [{"title": "Add a card effect type",
+                           "source": "pocket-draft#7 step 1"}])
+
+    def test_a_decline_without_a_source_is_still_recorded(self):
+        """A hand-written decline has no Source: line. It still counts."""
+        self.responses = {
+            "factory:resume": [{"number": 7, "body": RESUME_BODY}],
+            "factory:declined": [{"number": 3, "title": "Rewrite the board", "body": ""}],
+        }
+        state = repo_proposal_state("pocket-draft")
+        self.assertEqual(state["declined"], [{"title": "Rewrite the board", "source": ""}])
 
     def test_pull_requests_never_count_as_proposals(self):
         self.responses = {

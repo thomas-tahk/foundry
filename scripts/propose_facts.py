@@ -19,12 +19,26 @@ OPEN_PROPOSAL_CAP = 2  # shared across L1 and L3, per repo — not 2 each.
 
 SOURCE_RE = re.compile(r"^\s*(?:\*\*)?Source:(?:\*\*)?\s*(.+?)\s*$", re.M | re.I)
 STEP_RE = re.compile(r"^\s*(\d+)\.\s+(.*\S)\s*$", re.M)
+TITLE_NOISE_RE = re.compile(r"[^a-z0-9]+")
 
 
 def extract_source(body):
     """The `Source:` line an earlier loop stamped on a proposal, or None."""
     match = SOURCE_RE.search(body or "")
     return match.group(1).strip() if match else None
+
+
+def normalize_title(title):
+    """A proposal title reduced to its content, for comparing two proposals.
+
+    Declines are keyed on this and never on `Source:`. A `Source:` names where a
+    proposal came from — a step *number* in the Resume issue, or a branch L3 noticed
+    — and both outlive the thing they pointed at. L0 rewrites the Resume issue weekly,
+    so "step 2" is a different task most weeks; a stranded branch is one signal behind
+    many possible proposals. Keying declines on the origin made one refusal silence
+    every later proposal that happened to share it. The title names the work itself.
+    """
+    return TITLE_NOISE_RE.sub(" ", (title or "").lower()).strip()
 
 
 def parse_next_steps(body):
@@ -55,7 +69,9 @@ def repo_proposal_state(repo):
 
     open_count = len(proposed)
     taken = [s for s in (extract_source(i.get("body", "")) for i in proposed) if s]
-    refused = [s for s in (extract_source(i.get("body", "")) for i in declined) if s]
+    refused = [{"title": i.get("title", ""),
+                "source": extract_source(i.get("body", "")) or ""}
+               for i in declined]
 
     steps = parse_next_steps(resume[0].get("body", "")) if resume else []
     at_cap = open_count >= OPEN_PROPOSAL_CAP
@@ -68,7 +84,7 @@ def repo_proposal_state(repo):
         "cap": OPEN_PROPOSAL_CAP,
         "at_cap": at_cap,
         "taken_sources": taken,
-        "declined_sources": refused,
+        "declined": refused,
         "eligible": bool(steps) and not at_cap,
         "skip_reason": _skip_reason(steps, at_cap, bool(resume)),
     }

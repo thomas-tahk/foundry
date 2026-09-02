@@ -89,7 +89,7 @@ def repo_friction(repo, now):
         "open_proposals": eligibility["open_proposals"],
         "at_cap": eligibility["at_cap"],
         "taken_sources": eligibility["taken_sources"],
-        "declined_sources": eligibility["declined_sources"],
+        "declined": eligibility["declined"],
         "eligible": not eligibility["at_cap"],
     }
 

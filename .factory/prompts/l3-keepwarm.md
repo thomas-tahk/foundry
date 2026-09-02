@@ -16,7 +16,8 @@ repo already at its cap gets nothing from you, no matter what you found.
 
 `warm/facts.json` — per elected repo: default-branch CI state and the names of any
 failing checks, branches stranded 21+ days, Dependabot PRs open 14+ days, the current
-open-proposal count, and the `Source:` strings already taken or declined.
+open-proposal count, the `Source:` strings already taken, and `declined` — every
+proposal the user turned down, by title.
 
 Act only on repos where `eligible` is `true` **and** at least one friction signal is
 non-empty. A repo with no friction is the expected case — say it is warm and move on.
@@ -63,7 +64,11 @@ A run that writes neither a proposal nor a note is a broken run.
   notice a missing feature, ignore it.
 - **Never propose merging, deploying, or rotating anything.** Those are the user's, by
   hand. You may propose the work that makes a merge *possible*.
-- **Never re-raise declined friction.** Check `declined_sources` before writing.
+- **Never re-raise a declined proposal.** Check `declined` before writing: never
+  re-open one of those, or the same work under a reworded title. But a decline is
+  about that *proposal*, not the signal underneath it. If you proposed deleting a
+  stranded branch and the user declined, proposing to *land* that same branch is
+  still open to you — one refusal about a branch does not settle the branch.
 - **No nagging.** These are neutral observations about repository state. Never add
   urgency, never imply the user has been neglectful, never call a project abandoned.
 

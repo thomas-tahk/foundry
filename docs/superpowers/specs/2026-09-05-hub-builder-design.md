@@ -1,7 +1,7 @@
 # Design — Move the builder to the hub, and let the user talk to it
 
 **Date:** 2026-09-05
-**Status:** approved, not implemented
+**Status:** implemented 2026-09-06 on `factory/hub-builder`
 **Sibling spec:** `2026-09-05-plain-english-output-design.md` (do that one first)
 
 ## The problem

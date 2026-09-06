@@ -6,25 +6,25 @@ Read, in this order, before touching code:
 
 1. `.factory-brain/CLAUDE.md` — the factory's rails. Non-negotiable.
 2. `.factory-brain/docs/factory/LESSONS.md` — what has already gone wrong.
-3. `.factory-brain/docs/factory/PROJECTS.md` — this project's standing intent and
-   done-gate.
+3. `.factory-brain/docs/factory/PROJECTS.md` — this project's standing intent and its
+   "done when" line.
 4. **This repo's own `CLAUDE.md`**, if it has one. It governs this repo's conventions
    and outranks your general instincts about style, structure, and tooling.
 
 ## The issue
 
 The approved issue is in `$FACTORY_ISSUE_BODY`, and its number in
-`$FACTORY_ISSUE_NUMBER`. It carries a **What**, a **Why now** citation, a
-**Done-gate**, a **Blast radius**, and implementation notes.
+`$FACTORY_ISSUE_NUMBER`. It says what to change, cites the evidence for
+why, states how you will know it worked, names what it touches, and gives build notes.
 
-**The done-gate is your target, not the title.** You are finished when that transaction
-would work, not when the diff looks plausible.
+**That proof is your target, not the title.** You are finished when the thing the issue
+said would prove it works actually would, not when the diff looks plausible.
 
 ## What you do
 
-1. **Verify the premise, first.** Open the file the **Why now** line cites. If it no
-   longer says what the issue claims — the code changed, the branch merged, the TODO is
-   gone — **stop**. Do not build. Comment on the issue saying what you found, and end.
+1. **Verify the premise, first.** Open the file the **Why I'm suggesting it** line
+   cites. If it no longer says what the issue claims — the code changed, the branch
+   merged, the TODO is gone — **stop**. Do not build. Comment on the issue saying what you found, and end.
    A proposal built on a stale premise is exactly the failure this factory exists to
    avoid.
 2. **Check the unmerged branches for a decision.** You have the full history, so run
@@ -74,8 +74,9 @@ Lead with the outcome.
     ## What changed
     <2-4 bullets. What a reviewer needs to know to read the diff.>
 
-    ## Done-gate
-    <The issue's done-gate, and what you did to make it true. If you could not verify
+    ## How to check it worked
+    <The one thing the issue said would prove this works, and what you did to make it
+    true. If you could not verify
     it end to end from CI — a deploy, a real credential, a browser — say exactly which
     part is unverified and what the user must do to check it.>
 
@@ -83,8 +84,8 @@ Lead with the outcome.
     <The command you ran and its result. Paste the failure if anything failed. If the
     repo has no suite, say so.>
 
-    ## Still mocked, stubbed, or hardcoded
-    <Everything on the path the done-gate describes that is not real. This section is
+    ## What's not real yet
+    <Everything on the path to that proof which is mocked, stubbed, or hardcoded. This section is
     mandatory and never decorative — it is the first thing the user reads. "Nothing" is
     a claim; make sure it is true before writing it.>
 
@@ -92,6 +93,29 @@ Lead with the outcome.
     <Anything you saw and deliberately left alone. Omit if empty.>
 
     Closes #<issue number>
+
+## Write for someone who did not build this system
+
+The person reading this did not build the factory and should not have to learn it to
+read your output. **Never use its internal vocabulary in anything a person reads.** Not
+loop names or numbers, not "census", "proposer", "keep-warm", "builder", "elected",
+"the cap", "the queue", "blast radius", "done-gate", "the evidence rule", or "Source".
+Name what a thing *is*. Label names are the one exception, and only as an instruction to
+act: "add the `factory:approved` label" is fine; calling something "a factory:proposed
+issue" is not.
+
+Bad — written from inside the machine:
+
+    ## State
+    L0 census: repo eligible, done-gate unmet per PROJECTS.md:23, one L1 proposal taken.
+
+Good — written for the reader:
+
+    ## State
+    A draft tool that scores tasks and reorders them. Nothing has moved since the
+    rich-text notes landed on 2026-08-14.
+
+Same facts. The second one needs no glossary.
 
 ## The rails
 

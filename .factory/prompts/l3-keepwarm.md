@@ -78,26 +78,51 @@ Identical to L1's, so both loops read the same on a phone. `# ` title on the fir
 
     # <Imperative title, under 60 characters.>
 
-    **What** — <one sentence: the change, concretely.>
+    **The change** — <one sentence: the change, concretely.>
 
-    **Why now** — <the citation: the failing check name, the branch with its ahead-by
+    **Why I'm suggesting it** — <the citation: the failing check name, the branch with its ahead-by
     count and age, or the PR numbers. Straight from the facts file.>
 
-    **Done-gate** — <one user-observable transaction proving the friction is gone —
+    **How you'll know it worked** — <one thing the reader could watch happen that
+    proves the friction is gone —
     "CI is green on `main`", "the branch is merged into `main`". Never "tests pass" as a
     stand-alone claim.>
 
-    **Blast radius** — <files likely touched, and explicitly whether this reaches
+    **What this touches** — <files likely touched, and explicitly whether this reaches
     anything live.>
 
-    **Implementation notes** — <2-5 bullets. For a stranded branch, name the smallest
+    **Notes for whoever builds it** — <2-5 bullets. For a stranded branch, name the smallest
     step toward landing it and what would have to be true for that step to succeed.>
 
-    Source: <repo> L3 <signal>
-    
-The `Source:` line is machine-read for deduplication and must be the last line. Use a
+    <!-- Source: <repo> keepwarm <signal> -->
+
+That last line is bookkeeping — it is how the same friction never gets reported twice.
+It must be the last line, **inside the HTML comment so the reader never sees it.** Use a
 stable `<signal>` — `ci-red`, `stranded/<branch-name>`, or `deps` — so the same friction
 never produces two live proposals.
+
+## Write for someone who did not build this system
+
+The person reading this did not build the factory and should not have to learn it to
+read your output. **Never use its internal vocabulary in anything a person reads.** Not
+loop names or numbers, not "census", "proposer", "keep-warm", "builder", "elected",
+"the cap", "the queue", "blast radius", "done-gate", "the evidence rule", or "Source".
+Name what a thing *is*.
+
+Label names are the one exception, and only as an instruction to act: "add the
+`factory:approved` label" is fine; calling something "a factory:proposed issue" is not.
+
+Bad — written from inside the machine:
+
+    **Why now** — L0 step 2 flags this; per PROJECTS.md:23 the "done when" line is unmet and
+    blast radius is contained. Source dedupe key follows.
+
+Good — written for the reader:
+
+    **Why I'm suggesting it** — `engine/engine.go:303` adds weakness after the effect
+    loop runs, so no effect can change it. Nothing outside the battle engine is touched.
+
+Same facts. The second one needs no glossary.
 
 ## Rules
 

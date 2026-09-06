@@ -9,7 +9,7 @@ default branch, days since last commit, last commit, open PRs, stranded branches
 (ahead of default with no open PR), intent-document paths, and the test command.
 
 `docs/factory/PROJECTS.md` holds a short standing-intent entry per repo: what it is,
-where it stands, and its done-gate. **The reader wrote that file.** Restating it back
+where it stands, and its "done when" line. **The reader wrote that file.** Restating it back
 to him is the single worst thing this issue can do. Use it to understand the project;
 do not summarise it. Where an entry says "not yet characterised", say so plainly
 rather than inventing a characterisation.
@@ -53,9 +53,19 @@ when the repo has a commit in the last 7 days.
        parenthetical justification — the reason belongs in State, not here.>
     2. <…>
     3. <…>
-    <One to three of them, numbered, best first. Never zero: if the facts ground no
-    real step, the step is the reading — e.g. "Open `README.md` and write the
-    done-gate; PROJECTS.md has none." A repo with no shape still has a first move.>
+    <Never propose closing an unmerged PR, deleting a branch, reverting, or discarding
+    commits — at any age, for any ahead-by count. Unmerged commits are work the reader
+    started and paused; age is not evidence of abandonment.
+    **Never offer landing and discarding as a choice.** Once "or revert it" is on the
+    page, the next line deletes the branch. All of these are forbidden:
+    "Merge or close #17" / "Decide: land the refactor or revert it" /
+    "If reverting: delete the branch" / "complete or abandon it".
+    Every step is a step toward *landing* it: rebase it, split it, review it, resolve
+    the conflicts, finish the one thing blocking it.
+    One to three of them, numbered, best first. Never zero: if the facts ground no
+    real step, the step is the reading — e.g. "Open `README.md` and write down what
+    finished looks like; nothing records it." A repo with no shape still has a first
+    move.>
 
     ## Blockers
     <A precondition outside the code that must be true before step 1 can start: a
@@ -67,6 +77,29 @@ when the repo has a commit in the last 7 days.
     - Last commit: <N> days ago (<sha> <subject>)
     - Tests: <test command, or "none detected">
 
+## Write for someone who did not build this system
+
+The person reading this did not build the factory and should not have to learn it to
+read your output. **Never use its internal vocabulary in anything a person reads.** Not
+loop names or numbers, not "census", "proposer", "keep-warm", "builder", "elected",
+"the cap", "the queue", "blast radius", "done-gate", "the evidence rule", or "Source".
+Name what a thing *is*. Label names are the one exception, and only as an instruction to
+act: "add the `factory:approved` label" is fine; calling something "a factory:proposed
+issue" is not.
+
+Bad — written from inside the machine:
+
+    ## State
+    L0 census: repo eligible, done-gate unmet per PROJECTS.md:23, one L1 proposal taken.
+
+Good — written for the reader:
+
+    ## State
+    A draft tool that scores tasks and reorders them. Nothing has moved since the
+    rich-text notes landed on 2026-08-14.
+
+Same facts. The second one needs no glossary.
+
 ## Rules
 
 - **Say each fact once.** A path, branch, or number cited in one section does not
@@ -75,8 +108,8 @@ when the repo has a commit in the last 7 days.
   `census/facts.json` or to a file you read. If you cannot trace it, do not write it.
 - **Never print a line reference to `PROJECTS.md` or `LESSONS.md`.** They are your
   input contract, and `per PROJECTS.md:23` is noise to the person who wrote line 23.
-  Naming one in passing is fine when its absence is the point ("no done-gate is
-  written"). Code paths, branches, PR numbers, and commit shas are worth citing.
+  Naming one in passing is fine when its absence is the point ("nothing records what
+  finished looks like"). Code paths, branches, PR numbers, and commit shas are worth citing.
 - **Label inference.** "Likely stalled because…" is fine. Stating an inference as an
   observation is not.
 - **No nagging.** Days-since-last-commit is a neutral fact. Never add urgency,
@@ -99,7 +132,7 @@ three times, buries the step in justification:
     (`engine/types.go:63`) per `PROJECTS.md:16`.
 
     ## Likely reason it stalled
-    Likely because the done-gate requires two unimplemented features: dynamic opponent
+    Likely because finishing needs two unimplemented features: dynamic opponent
     deckbuilding (currently hardcoded in `server/carddata.go:185-190`) and card text
     effects. Evidence: last commit was 45 days ago.
 
@@ -118,8 +151,8 @@ Good — same facts, each said once:
     `#1` — open, 43 days — gameplay UI at `?play`
 
     ## Likely reason it stalled
-    Likely the done-gate needs card effects, which is the largest single piece of
-    unwritten work in the repo.
+    Likely because finishing needs card effects, the largest single piece of unwritten
+    work in the repo.
 
     ## Next steps
     1. Define the effect type in `engine/types.go` for one card.

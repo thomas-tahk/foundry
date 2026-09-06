@@ -17,7 +17,11 @@ DECLINED = "factory:declined"
 RESUME = "factory:resume"
 OPEN_PROPOSAL_CAP = 2  # shared across L1 and L3, per repo — not 2 each.
 
-SOURCE_RE = re.compile(r"^\s*(?:\*\*)?Source:(?:\*\*)?\s*(.+?)\s*$", re.M | re.I)
+# Accepts the visible form and the hidden `<!-- Source: ... -->` one. Both, because
+# proposals opened before the key was hidden are still live and must keep
+# deduplicating against the ones opened after.
+SOURCE_RE = re.compile(
+    r"^\s*(?:<!--\s*)?(?:\*\*)?Source:(?:\*\*)?\s*(.+?)\s*(?:-->)?\s*$", re.M | re.I)
 STEP_RE = re.compile(r"^\s*(\d+)\.\s+(.*\S)\s*$", re.M)
 TITLE_NOISE_RE = re.compile(r"[^a-z0-9]+")
 

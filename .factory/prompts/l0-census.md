@@ -53,7 +53,12 @@ when the repo has a commit in the last 7 days.
        parenthetical justification — the reason belongs in State, not here.>
     2. <…>
     3. <…>
-    <One to three of them, numbered, best first. Never zero: if the facts ground no
+    <Never propose closing an unmerged PR, deleting a branch, or discarding commits —
+    at any age, for any ahead-by count. Unmerged commits are work the reader started
+    and paused; age is not evidence of abandonment. "Merge or close #17" and "if
+    closing, delete the branch" are both forbidden. The step is always how to *land*
+    it: rebase it, split it, review it, finish the one thing blocking it.
+    One to three of them, numbered, best first. Never zero: if the facts ground no
     real step, the step is the reading — e.g. "Open `README.md` and write down what
     finished looks like; nothing records it." A repo with no shape still has a first
     move.>

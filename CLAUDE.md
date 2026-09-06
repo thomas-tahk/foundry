@@ -98,6 +98,11 @@ Lead with the outcome — the first line answers "what did you find" or "what di
 supporting detail after. Be concise: fragments over sentences, lists over prose, no
 preamble, no recap of the request. Caveats only if they change the next action.
 
+**Names are output too.** Branch names, PR titles, issue titles, commit subjects — the
+same rule applies to all of them. Short and plain, naming one thing. Never stack
+qualifiers with `and` to cover everything a change contains: name the point of it, or
+split it. `factory/plain-english` — not `factory/plain-english-and-hub-builder`.
+
 Do not append `Co-Authored-By` trailers to commits. The user is the accountable author.
 
 ## Lessons

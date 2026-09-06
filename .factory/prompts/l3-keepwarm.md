@@ -114,7 +114,7 @@ Label names are the one exception, and only as an instruction to act: "add the
 
 Bad — written from inside the machine:
 
-    **Why now** — L0 step 2 flags this; per PROJECTS.md:23 the done-gate is unmet and
+    **Why now** — L0 step 2 flags this; per PROJECTS.md:23 the "done when" line is unmet and
     blast radius is contained. Source dedupe key follows.
 
 Good — written for the reader:

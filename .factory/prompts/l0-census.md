@@ -9,7 +9,7 @@ default branch, days since last commit, last commit, open PRs, stranded branches
 (ahead of default with no open PR), intent-document paths, and the test command.
 
 `docs/factory/PROJECTS.md` holds a short standing-intent entry per repo: what it is,
-where it stands, and its done-gate. **The reader wrote that file.** Restating it back
+where it stands, and its "done when" line. **The reader wrote that file.** Restating it back
 to him is the single worst thing this issue can do. Use it to understand the project;
 do not summarise it. Where an entry says "not yet characterised", say so plainly
 rather than inventing a characterisation.
@@ -53,11 +53,15 @@ when the repo has a commit in the last 7 days.
        parenthetical justification — the reason belongs in State, not here.>
     2. <…>
     3. <…>
-    <Never propose closing an unmerged PR, deleting a branch, or discarding commits —
-    at any age, for any ahead-by count. Unmerged commits are work the reader started
-    and paused; age is not evidence of abandonment. "Merge or close #17" and "if
-    closing, delete the branch" are both forbidden. The step is always how to *land*
-    it: rebase it, split it, review it, finish the one thing blocking it.
+    <Never propose closing an unmerged PR, deleting a branch, reverting, or discarding
+    commits — at any age, for any ahead-by count. Unmerged commits are work the reader
+    started and paused; age is not evidence of abandonment.
+    **Never offer landing and discarding as a choice.** Once "or revert it" is on the
+    page, the next line deletes the branch. All of these are forbidden:
+    "Merge or close #17" / "Decide: land the refactor or revert it" /
+    "If reverting: delete the branch" / "complete or abandon it".
+    Every step is a step toward *landing* it: rebase it, split it, review it, resolve
+    the conflicts, finish the one thing blocking it.
     One to three of them, numbered, best first. Never zero: if the facts ground no
     real step, the step is the reading — e.g. "Open `README.md` and write down what
     finished looks like; nothing records it." A repo with no shape still has a first

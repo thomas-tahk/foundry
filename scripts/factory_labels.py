@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Create the factory label vocabulary in every elected repo.
 
-L2 fires on `issues.labeled`, which means the label has to exist before the
-user can apply it. Run this once per newly elected repo; a repeat run is a
+The builder polls for these labels, which means they have to exist before
+the user can apply one. Run this once per newly elected repo; a repeat run is a
 no-op. Idempotent by design — `gh label create` on an existing label is not an
 error worth failing a run over.
 """
@@ -14,10 +14,12 @@ from scripts.generate_report import OWNER, load_elected
 # Colour and description are documentation the user reads on a phone, in the
 # label picker, at the moment of approving work. They are not decoration.
 VOCABULARY = [
-    ("factory:resume", "1D76DB", "The single pinned Resume issue, rewritten weekly by L0"),
+    ("factory:resume", "1D76DB", "Where this project stands and what to do next, rewritten weekly"),
     ("factory:proposed", "0E8A16", "Proposed work awaiting a decision"),
-    ("factory:approved", "5319E7", "Approved — L2 builds this into a draft PR"),
-    ("factory:building", "FBCA04", "L2 is building this now"),
+    ("factory:approved", "5319E7", "Approved — build this into a draft pull request"),
+    ("factory:building", "FBCA04", "Being built right now"),
+    ("factory:built", "C2E0C6", "Built — a draft pull request is open for this"),
+    ("factory:try-again", "FEF2C0", "Read my comments and rebuild this pull request"),
     ("factory:declined", "B60205", "Never propose this again"),
     ("factory:blocked", "D93F0B", "Needs something only you can supply"),
     ("factory:deep", "000000", "Escalate this one issue to a stronger model"),

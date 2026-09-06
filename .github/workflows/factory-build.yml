@@ -1,0 +1,160 @@
+name: Factory L2 — Builder
+
+# Polls from here rather than living inside each project. A workflow file, a
+# secret, and a GitHub App install per project was three manual steps per
+# election; now electing a project is one line in elected.txt.
+on:
+  schedule:
+    # Hourly at seven past. Scheduled runs are best-effort and the top of the
+    # hour is the busiest minute to ask for a runner.
+    - cron: "7 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  # One build at a time across every project. The review queue, not the runner,
+  # is the scarce resource.
+  group: factory-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      # Stage 1 — pick the work. No model: which issue is approved and how many
+      # attempts a pull request has had are lookups, not judgment. A run that
+      # finds nothing stops here, which is what most runs do.
+      - name: Pick the work
+        id: pick
+        env:
+          GITHUB_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: |
+          python3 -m scripts.build_facts
+          repo=$(jq -r '.work.repo // ""' build/facts.json)
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+          echo "branch=$(jq -r '.work.branch // ""' build/facts.json)" >> "$GITHUB_OUTPUT"
+          echo "issue=$(jq -r '.work.issue_number // ""' build/facts.json)" >> "$GITHUB_OUTPUT"
+          echo "kind=$(jq -r '.work.kind // ""' build/facts.json)" >> "$GITHUB_OUTPUT"
+          if [ "$(jq -r '.work.deep // false' build/facts.json)" = "true" ]; then
+            echo "model=claude-opus-5" >> "$GITHUB_OUTPUT"
+          else
+            echo "model=claude-sonnet-5" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Same checkout the proposer uses, for the same reason: this user pauses
+      # work on a branch, so written decisions often live where the default
+      # branch cannot see them. The model has Bash here and could run git itself,
+      # but the exported copies cost nothing and match what the proposer reads.
+      - name: Check out the project
+        if: steps.pick.outputs.repo != ''
+        env:
+          GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+          REPO: ${{ steps.pick.outputs.repo }}
+          BRANCH: ${{ steps.pick.outputs.branch }}
+          KIND: ${{ steps.pick.outputs.kind }}
+        run: |
+          mkdir -p work
+          gh repo clone "thomas-tahk/$REPO" "work/$REPO" -- \
+            --depth 50 --no-single-branch --quiet
+          git -C "work/$REPO" config user.name "thomas-tahk"
+          git -C "work/$REPO" config user.email "tomtahk27@gmail.com"
+
+          # A retry continues the branch that is already under review, so the
+          # user sees one thread instead of a new pull request per attempt.
+          if [ "$KIND" = "retry" ] && [ -n "$BRANCH" ]; then
+            git -C "work/$REPO" checkout "$BRANCH"
+          fi
+
+          default=$(git -C "work/$REPO" symbolic-ref --short refs/remotes/origin/HEAD \
+            | sed 's|^origin/||')
+          git -C "work/$REPO" for-each-ref --format='%(refname:short)' refs/remotes/origin \
+            | sed 's|^origin/||' | grep -vxE "HEAD|origin|$default" | while read -r br; do
+            dest="work/$REPO/.branches/$br"
+            mkdir -p "$dest"
+            # One archive call per path: git archive aborts the whole pathspec if
+            # any single entry is missing, and most repos lack at least one.
+            for path in docs README.md CLAUDE.md CONTEXT.md AGENTS.md; do
+              git -C "work/$REPO" archive "origin/$br" "$path" 2>/dev/null \
+                | tar -x -C "$dest" 2>/dev/null || true
+            done
+            if [ -n "$(ls -A "$dest" 2>/dev/null)" ]; then
+              echo "  branch docs: $REPO/$br"
+            else
+              rmdir "$dest" 2>/dev/null || true
+            fi
+          done
+          rmdir "work/$REPO/.branches" 2>/dev/null || true
+          # Never commit the exported copies of other branches' docs.
+          echo ".branches/" >> "work/$REPO/.git/info/exclude"
+
+      - name: Mark it in flight
+        if: steps.pick.outputs.issue != ''
+        env:
+          GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: |
+          gh issue edit "${{ steps.pick.outputs.issue }}" \
+            --repo "thomas-tahk/${{ steps.pick.outputs.repo }}" \
+            --add-label factory:building --remove-label factory:approved
+
+      # Stage 2 — judgment, holding nothing. No token is in this environment, so
+      # the model cannot reach the GitHub API even if it tried: it edits files
+      # under work/ and writes the pull-request text to build/out/.
+      - name: Build
+        if: steps.pick.outputs.repo != ''
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          prompt: |
+            Follow the instructions in .factory/prompts/l2-builder.md exactly.
+          claude_args: |
+            --max-turns 120
+            --model ${{ steps.pick.outputs.model }}
+            --allowedTools Read,Write,Edit,Glob,Grep,Bash
+
+      - name: Show what it reported
+        if: always() && steps.pick.outputs.repo != ''
+        run: |
+          for f in build/out/*.md build/notes/*.md; do
+            [ -f "$f" ] || continue
+            echo "--- $f ---"
+            cat "$f"
+          done
+
+      # Stage 3 — publish. The only step that writes to a project, and there is
+      # no model in it.
+      - name: Open the draft pull request
+        if: always() && steps.pick.outputs.repo != ''
+        env:
+          GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+          FACTORY_GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: |
+          repo="${{ steps.pick.outputs.repo }}"
+          # Push credentials via a helper rather than a remote URL, so the token
+          # never lands anywhere `git remote -v` would print it.
+          git -C "work/$repo" config credential.helper \
+            '!f() { echo username=x-access-token; echo "password=$FACTORY_GH_TOKEN"; }; f'
+          python3 -m scripts.build_publish
+
+      # A failure must never leave an issue reading "being built right now"
+      # forever.
+      - name: Release the issue
+        if: always() && steps.pick.outputs.issue != ''
+        env:
+          GH_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: |
+          issue="${{ steps.pick.outputs.issue }}"
+          repo="thomas-tahk/${{ steps.pick.outputs.repo }}"
+          log="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          gh issue edit "$issue" --repo "$repo" --remove-label factory:building || true
+          if [ "${{ job.status }}" != "success" ]; then
+            gh issue comment "$issue" --repo "$repo" --body \
+              "<!-- factory -->$(printf '\n')The build run failed before it could finish. Nothing was written to this project. The [run log]($log) has the detail. Re-approving this is safe."
+          fi

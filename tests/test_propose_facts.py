@@ -46,6 +46,17 @@ class ExtractSource(unittest.TestCase):
         self.assertEqual(extract_source("**Source:** knowflow#16 step 1"),
                          "knowflow#16 step 1")
 
+    def test_reads_a_source_line_hidden_in_an_html_comment(self):
+        """The key is bookkeeping, so it is written where the reader cannot see it."""
+        self.assertEqual(
+            extract_source("body\n\n<!-- Source: pocket-draft#4 step 2 -->"),
+            "pocket-draft#4 step 2")
+
+    def test_still_reads_the_bare_form_on_issues_written_before_the_change(self):
+        """Live proposals carry the old visible form and must keep deduplicating."""
+        self.assertEqual(extract_source("<!-- Source: a -->\n"), "a")
+        self.assertEqual(extract_source("Source: a"), "a")
+
     def test_absent_source_is_none(self):
         self.assertIsNone(extract_source("no attribution here"))
 

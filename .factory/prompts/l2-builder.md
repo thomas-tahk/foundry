@@ -6,8 +6,8 @@ Read, in this order, before touching code:
 
 1. `.factory-brain/CLAUDE.md` — the factory's rails. Non-negotiable.
 2. `.factory-brain/docs/factory/LESSONS.md` — what has already gone wrong.
-3. `.factory-brain/docs/factory/PROJECTS.md` — this project's standing intent and
-   done-gate.
+3. `.factory-brain/docs/factory/PROJECTS.md` — this project's standing intent and its
+   "done when" line.
 4. **This repo's own `CLAUDE.md`**, if it has one. It governs this repo's conventions
    and outranks your general instincts about style, structure, and tooling.
 

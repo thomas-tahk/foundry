@@ -153,7 +153,7 @@ Same facts. The second one needs no glossary.
 - **Never contradict `LESSONS.md` silently.** A proposal that goes against a recorded
   lesson must say so and argue the case, or not be written.
 - **Respect `PROJECTS.md` scope.** A repo whose entry says work is out of scope, or
-  whose done-gate is already met, does not get a proposal for that thing.
+  whose "done when" line is already met, does not get a proposal for that thing.
 - **Never propose work in a repo not listed as eligible.** Never propose merging,
   deploying, rotating a credential, or anything else the user must do by hand.
 - **No self-modification.** Never propose changes to this prompt or these workflows

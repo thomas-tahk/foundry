@@ -1,6 +1,15 @@
-# Build tier: repos where the factory may propose (L1), build (L2), and keep warm (L3).
-# A strict subset of repos.txt. Same rules: one repo name per line, # starts a comment.
-# Adding a line here is the election. Keep this list short — the binding constraint is
-# review capacity, not agent throughput.
+# Projects the factory may raise and build work in.
+#
+# Every project in repos.txt gets the weekly "where this stands" issue. Only the ones
+# listed here can have work proposed, built into a draft pull request, or watched for
+# red builds and stranded branches. Adding a line here is the whole switch.
+#
+# One project name per line; # starts a comment.
+#
+# Keep this list short. The limit is not how much the machine can write — it is how much
+# you can read. Two open proposals per project, and they arrive whether or not you have
+# time for them.
 
 pocket-draft
+priority-post
+knowflow

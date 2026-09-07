@@ -11,7 +11,5 @@ thomas-tahk-portfolio-game
 llm-plays-sc
 shows-for-us
 amugonna
-ai-advisor
 ez-golf
-pwp-rts-timeline
 esports-tldr

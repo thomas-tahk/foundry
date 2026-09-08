@@ -1,5 +1,6 @@
 """Stage 1 of the builder decides what gets built, and refuses a fourth attempt."""
 import unittest
+from datetime import datetime, timezone
 
 from scripts.build_facts import (
     MAX_ATTEMPTS,
@@ -8,7 +9,14 @@ from scripts.build_facts import (
     buildable,
     has_label,
     slugify,
+    summarise_pulls,
 )
+
+NOW = datetime(2026, 9, 8, tzinfo=timezone.utc)
+
+
+def pull(number, title, state="open", merged_at=None):
+    return {"number": number, "title": title, "state": state, "merged_at": merged_at}
 
 
 def issue(number=7, title="Score tasks by due date", body="", labels=()):
@@ -81,3 +89,53 @@ class Buildable(unittest.TestCase):
     def test_one_already_built_is_not_even_when_approved_again(self):
         self.assertFalse(buildable(issue(labels=["factory:approved",
                                                  "factory:built"])))
+
+
+class SummarisePulls(unittest.TestCase):
+    """What the project already has in flight or shipped recently."""
+
+    def test_an_open_pull_request_is_kept(self):
+        summary = summarise_pulls([pull(1, "Add a sticky header")], NOW)
+        self.assertEqual(summary, [{"number": 1, "title": "Add a sticky header",
+                                    "state": "open"}])
+
+    def test_a_recent_merge_is_kept_with_its_age(self):
+        summary = summarise_pulls(
+            [pull(2, "Sticky header", state="closed", merged_at="2026-09-01T00:00:00Z")],
+            NOW)
+        self.assertEqual(summary[0]["state"], "merged")
+        self.assertEqual(summary[0]["merged_days_ago"], 7)
+
+    def test_an_old_merge_is_dropped(self):
+        summary = summarise_pulls(
+            [pull(3, "Ancient work", state="closed", merged_at="2026-01-01T00:00:00Z")],
+            NOW)
+        self.assertEqual(summary, [])
+
+    def test_a_closed_pull_request_that_never_merged_covers_nothing(self):
+        summary = summarise_pulls([pull(4, "Abandoned", state="closed")], NOW)
+        self.assertEqual(summary, [])
+
+    def test_nothing_at_all_is_not_an_error(self):
+        self.assertEqual(summarise_pulls(None, NOW), [])
+
+
+class RecentWorkOnHandWrittenTasks(unittest.TestCase):
+    """The user cannot know what shipped since they thought of the task."""
+
+    def test_a_task_the_user_typed_carries_what_already_shipped(self):
+        work = build_work("priority-post", issue(body="Make the header sticky."),
+                          lookup=lambda repo: [{"number": 9, "title": "Sticky header",
+                                                "state": "open"}])
+        self.assertEqual(work["recent_work"][0]["number"], 9)
+
+    def test_a_proposal_the_factory_wrote_is_checked_against_its_own_evidence(self):
+        work = build_work("priority-post",
+                          issue(body="Why\n\n<!-- Source: p#2 step 1 -->"),
+                          lookup=lambda repo: [{"number": 9, "title": "x",
+                                                "state": "open"}])
+        self.assertEqual(work["recent_work"], [])
+
+    def test_no_lookup_means_no_recent_work_rather_than_a_missing_field(self):
+        work = build_work("priority-post", issue(body="Make the header sticky."))
+        self.assertEqual(work["recent_work"], [])

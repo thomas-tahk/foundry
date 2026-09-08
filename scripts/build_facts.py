@@ -21,6 +21,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+from scripts.census_facts import age_in_days
 from scripts.generate_report import OWNER, gh, load_elected
 from scripts.propose_facts import extract_source
 
@@ -30,6 +31,7 @@ BUILDING = "factory:building"
 BUILT = "factory:built"
 DEEP = "factory:deep"
 MAX_ATTEMPTS = 3
+RECENT_DAYS = 30
 
 # Stage 3 stamps every comment it writes with this. The token that posts them is
 # the user's own, so a factory comment is indistinguishable from a human one by
@@ -119,6 +121,10 @@ def retry_work(repo, pr):
         "issue_title": issue.get("title", pr.get("title", "")),
         "issue_body": issue.get("body", ""),
         "premise_cited": bool(extract_source(issue.get("body", ""))),
+        # A retry already has a pull request to orient against, so the shipped-work
+        # lookup buys nothing here. The key is always present so the prompt can
+        # read it without a special case.
+        "recent_work": [],
         "feedback": human_comments(repo, pr["number"]),
         "deep": has_label(pr, DEEP) or has_label(issue, DEEP),
     }
@@ -157,8 +163,40 @@ def buildable(issue):
     return not (has_label(issue, BUILDING) or has_label(issue, BUILT))
 
 
-def build_work(repo, issue):
+def summarise_pulls(pulls, now):
+    """Open pull requests, plus ones merged inside the window.
+
+    A task the user typed may already be covered by one of these. One that was
+    closed without merging covers nothing, so it is dropped rather than offered
+    as evidence the work is done.
+    """
+    summary = []
+    for pull in pulls or []:
+        if pull.get("state") == "open":
+            summary.append({"number": pull["number"],
+                            "title": pull.get("title", ""), "state": "open"})
+            continue
+        age = age_in_days(pull.get("merged_at"), now)
+        if age is not None and age <= RECENT_DAYS:
+            summary.append({"number": pull["number"],
+                            "title": pull.get("title", ""), "state": "merged",
+                            "merged_days_ago": age})
+    return summary
+
+
+def recent_work(repo):
+    """What this project has in flight or shipped lately."""
+    pulls = gh(f"/repos/{OWNER}/{repo}/pulls",
+               {"state": "all", "per_page": 50, "sort": "updated",
+                "direction": "desc"})
+    if not isinstance(pulls, list):
+        return []
+    return summarise_pulls(pulls, datetime.now(timezone.utc))
+
+
+def build_work(repo, issue, lookup=None):
     """A first build from an approved issue."""
+    cited = bool(extract_source(issue.get("body", "")))
     return {
         "repo": repo,
         "kind": "build",
@@ -172,7 +210,11 @@ def build_work(repo, issue):
         # user typed by hand does not. The builder verifies its own premises and
         # stands down on the user's, who does not have to cite evidence to
         # themselves.
-        "premise_cited": bool(extract_source(issue.get("body", ""))),
+        "premise_cited": cited,
+        # What they cannot know is what shipped between thinking of the task and
+        # typing it. A machine-written task is checked against its own citation
+        # instead, so it gets none of this.
+        "recent_work": [] if cited or not lookup else lookup(repo),
         "feedback": [],
         "deep": has_label(issue, DEEP),
     }
@@ -189,7 +231,7 @@ def find_work(repos):
         for issue in labelled(repo, APPROVED, want_pulls=False):
             if not buildable(issue):
                 continue
-            return build_work(repo, issue)
+            return build_work(repo, issue, lookup=recent_work)
     return None
 
 

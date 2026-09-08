@@ -1,0 +1,79 @@
+{
+  "generated_at": "2026-09-08T01:59:01Z",
+  "projects": [
+    "thomas-tahk/pocket-draft",
+    "thomas-tahk/priority-post",
+    "thomas-tahk/knowflow"
+  ],
+  "items": [
+    {
+      "id": "pocket-draft#9",
+      "repo": "thomas-tahk/pocket-draft",
+      "number": 9,
+      "summary": "Give the bot's deck a real 16-round draft, not a fixed preset",
+      "detail": "Slice of the larger step: run the actual pick-1-of-5\u00d716 draft (server-side, reusing the client's tier-weighted offer algorithm) to build player 2's deck, instead of the two hardcoded `fireDeckList`/`waterDeckList` presets. Shop and\u2026",
+      "state": "waiting_on_you",
+      "url": "https://github.com/thomas-tahk/pocket-draft/issues/9",
+      "since": "2026-09-03T10:32:56Z",
+      "actions": [
+        {
+          "key": "approve",
+          "label": "Build it",
+          "kind": "apply_label",
+          "number": 9,
+          "value": "factory:approved"
+        },
+        {
+          "key": "decline",
+          "label": "Not now",
+          "kind": "apply_label",
+          "number": 9,
+          "value": "factory:declined",
+          "confirm": true
+        },
+        {
+          "key": "read",
+          "label": "Read the plan",
+          "kind": "open_url",
+          "value": "https://github.com/thomas-tahk/pocket-draft/issues/9"
+        }
+      ]
+    },
+    {
+      "id": "priority-post~branch~phase-3-discord-planner",
+      "repo": "thomas-tahk/priority-post",
+      "number": null,
+      "summary": "A branch has been sitting unfinished for 74 days",
+      "detail": "phase-3-discord-planner is 6 commits ahead, last touched 2026-06-25.",
+      "state": "branch_stranded",
+      "url": "https://github.com/thomas-tahk/priority-post/tree/phase-3-discord-planner",
+      "since": "2026-06-25T00:00:00Z",
+      "actions": [
+        {
+          "key": "open",
+          "label": "Open the branch",
+          "kind": "open_url",
+          "value": "https://github.com/thomas-tahk/priority-post/tree/phase-3-discord-planner"
+        }
+      ]
+    },
+    {
+      "id": "knowflow~branch~fix/sec-incident-content",
+      "repo": "thomas-tahk/knowflow",
+      "number": null,
+      "summary": "A branch has been sitting unfinished for 31 days",
+      "detail": "fix/sec-incident-content is 13 commits ahead, last touched 2026-08-07.",
+      "state": "branch_stranded",
+      "url": "https://github.com/thomas-tahk/knowflow/tree/fix/sec-incident-content",
+      "since": "2026-08-07T00:00:00Z",
+      "actions": [
+        {
+          "key": "open",
+          "label": "Open the branch",
+          "kind": "open_url",
+          "value": "https://github.com/thomas-tahk/knowflow/tree/fix/sec-incident-content"
+        }
+      ]
+    }
+  ]
+}

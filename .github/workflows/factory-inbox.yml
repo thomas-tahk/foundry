@@ -1,0 +1,45 @@
+name: Factory — Inbox
+
+# The one file priority-post reads. Everything else the factory publishes is
+# written for GitHub's own UI; this is written for the phone in the user's hand.
+#
+# Hourly, because the list has to stop showing work the moment it stops needing
+# them. The publisher rewrites the file only when the items actually changed, so
+# a quiet hour leaves no commit behind.
+
+on:
+  schedule:
+    - cron: "7 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: factory-inbox
+  cancel-in-progress: false
+
+jobs:
+  inbox:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Publish the inbox
+        env:
+          GITHUB_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+        run: python3 -m scripts.inbox_publish
+
+      - name: Commit it if it moved
+        run: |
+          if git diff --quiet -- inbox/inbox.json; then
+            echo "Nothing changed."
+            exit 0
+          fi
+          count=$(python3 -c "import json;print(len(json.load(open('inbox/inbox.json'))['items']))")
+          git config user.name "factory"
+          git config user.email "factory@users.noreply.github.com"
+          git add inbox/inbox.json
+          git commit -m "inbox: ${count} item(s) needing you"
+          git push

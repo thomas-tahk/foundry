@@ -1,11 +1,29 @@
 {
-  "generated_at": "2026-09-08T01:59:01Z",
+  "generated_at": "2026-09-08T08:49:08Z",
   "projects": [
     "thomas-tahk/pocket-draft",
     "thomas-tahk/priority-post",
     "thomas-tahk/knowflow"
   ],
   "items": [
+    {
+      "id": "priority-post~ci",
+      "repo": "thomas-tahk/priority-post",
+      "number": null,
+      "summary": "The build is failing on main",
+      "detail": "Failing: tick.",
+      "state": "build_failing",
+      "url": "https://github.com/thomas-tahk/priority-post/actions",
+      "since": "2026-09-08T08:49:08Z",
+      "actions": [
+        {
+          "key": "open",
+          "label": "See what broke",
+          "kind": "open_url",
+          "value": "https://github.com/thomas-tahk/priority-post/actions"
+        }
+      ]
+    },
     {
       "id": "pocket-draft#9",
       "repo": "thomas-tahk/pocket-draft",
@@ -40,28 +58,10 @@
       ]
     },
     {
-      "id": "priority-post~branch~phase-3-discord-planner",
-      "repo": "thomas-tahk/priority-post",
-      "number": null,
-      "summary": "A branch has been sitting unfinished for 74 days",
-      "detail": "phase-3-discord-planner is 6 commits ahead, last touched 2026-06-25.",
-      "state": "branch_stranded",
-      "url": "https://github.com/thomas-tahk/priority-post/tree/phase-3-discord-planner",
-      "since": "2026-06-25T00:00:00Z",
-      "actions": [
-        {
-          "key": "open",
-          "label": "Open the branch",
-          "kind": "open_url",
-          "value": "https://github.com/thomas-tahk/priority-post/tree/phase-3-discord-planner"
-        }
-      ]
-    },
-    {
       "id": "knowflow~branch~fix/sec-incident-content",
       "repo": "thomas-tahk/knowflow",
       "number": null,
-      "summary": "A branch has been sitting unfinished for 31 days",
+      "summary": "A branch has been sitting unfinished for 32 days",
       "detail": "fix/sec-incident-content is 13 commits ahead, last touched 2026-08-07.",
       "state": "branch_stranded",
       "url": "https://github.com/thomas-tahk/knowflow/tree/fix/sec-incident-content",

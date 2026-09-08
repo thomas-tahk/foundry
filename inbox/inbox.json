@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T08:49:08Z",
+  "generated_at": "2026-09-08T13:31:04Z",
   "projects": [
     "thomas-tahk/pocket-draft",
     "thomas-tahk/priority-post",
@@ -14,7 +14,7 @@
       "detail": "Failing: tick.",
       "state": "build_failing",
       "url": "https://github.com/thomas-tahk/priority-post/actions",
-      "since": "2026-09-08T08:49:08Z",
+      "since": "2026-09-08T13:31:04Z",
       "actions": [
         {
           "key": "open",

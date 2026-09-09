@@ -1,7 +1,7 @@
 """Stage 3 is the only step that writes to a project, so its text has to be right."""
 import unittest
 
-from scripts.build_publish import pr_body
+from scripts.build_publish import finished_labels, pr_body
 
 
 class PullRequestBody(unittest.TestCase):
@@ -19,3 +19,16 @@ class PullRequestBody(unittest.TestCase):
     def test_the_counter_survives_a_round_trip_so_the_cap_can_be_enforced(self):
         from scripts.build_facts import attempt_count
         self.assertEqual(attempt_count(pr_body({"attempt": 3}, "body")), 3)
+
+
+class FinishedLabels(unittest.TestCase):
+    """The labels a built issue is left with decide what the inbox says next."""
+
+    def test_it_stops_asking_for_a_decision_already_made(self):
+        self.assertIn("factory:proposed", finished_labels()["remove"])
+
+    def test_it_stops_the_next_poll_rebuilding_the_same_work(self):
+        self.assertIn("factory:approved", finished_labels()["remove"])
+
+    def test_it_marks_the_issue_built(self):
+        self.assertEqual(finished_labels()["add"], ["factory:built"])

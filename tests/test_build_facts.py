@@ -5,6 +5,7 @@ from scripts.build_facts import (
     MAX_ATTEMPTS,
     attempt_count,
     build_work,
+    buildable,
     has_label,
     slugify,
 )
@@ -65,3 +66,18 @@ class BuildWork(unittest.TestCase):
         work = build_work("priority-post", issue())
         self.assertEqual(work["attempt"], 1)
         self.assertEqual(work["feedback"], [])
+
+
+class Buildable(unittest.TestCase):
+    """A second tap on a finished task must not spend a run rebuilding it."""
+
+    def test_a_fresh_approved_issue_is_buildable(self):
+        self.assertTrue(buildable(issue(labels=["factory:approved"])))
+
+    def test_one_already_being_built_is_not(self):
+        self.assertFalse(buildable(issue(labels=["factory:approved",
+                                                 "factory:building"])))
+
+    def test_one_already_built_is_not_even_when_approved_again(self):
+        self.assertFalse(buildable(issue(labels=["factory:approved",
+                                                 "factory:built"])))

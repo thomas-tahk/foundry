@@ -19,11 +19,11 @@ import subprocess
 import sys
 from pathlib import Path
 
-from scripts.build_facts import APPROVED, BUILDING, FACTORY_MARK, TRY_AGAIN
+from scripts.build_facts import APPROVED, BUILDING, BUILT, FACTORY_MARK, TRY_AGAIN
+from scripts.propose_facts import PROPOSED
 from scripts.generate_report import OWNER
 from scripts.propose_publish import split_title
 
-BUILT = "factory:built"
 BLOCKED = "factory:blocked"
 FACTS = Path("build/facts.json")
 
@@ -55,6 +55,15 @@ def default_branch(repo):
 def comment(repo, number, body):
     run(["gh", "issue", "comment", str(number), "--repo", f"{OWNER}/{repo}",
          "--body", f"{FACTORY_MARK}\n{body}"])
+
+
+def finished_labels():
+    """What a built issue should carry once its draft is open.
+
+    `proposed` has to come off or the inbox keeps asking for a decision that was
+    made hours ago; `approved` has to come off or the next poll rebuilds it.
+    """
+    return {"add": [BUILT], "remove": [BUILDING, APPROVED, PROPOSED]}
 
 
 def relabel(repo, number, add=(), remove=()):
@@ -143,7 +152,12 @@ def publish(work):
     commit_and_push(work, repo_dir, title)
     number = open_or_update_pr(work, title, pr_body(work, body))
     if work["issue_number"]:
-        relabel(repo, work["issue_number"], add=[BUILT], remove=[BUILDING, APPROVED])
+        relabel(repo, work["issue_number"], **finished_labels())
+    # The inbox finds a finished draft by this label, not by the issue's. Without
+    # it the one item worth reading — a draft is open, nothing has shipped — never
+    # reaches the list.
+    run(["gh", "pr", "edit", str(number), "--repo", f"{OWNER}/{repo}",
+         "--add-label", BUILT], check=False)
     print(f"- {repo}: draft PR #{number} — {title}")
 
 

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T04:30:47Z",
+  "generated_at": "2026-09-09T09:37:24Z",
   "projects": [
     "thomas-tahk/pocket-draft",
     "thomas-tahk/priority-post",
@@ -14,7 +14,7 @@
       "detail": "Failing: tick.",
       "state": "build_failing",
       "url": "https://github.com/thomas-tahk/priority-post/actions",
-      "since": "2026-09-09T04:30:47Z",
+      "since": "2026-09-09T09:37:24Z",
       "actions": [
         {
           "key": "open",
@@ -61,7 +61,7 @@
       "id": "knowflow~branch~fix/sec-incident-content",
       "repo": "thomas-tahk/knowflow",
       "number": null,
-      "summary": "A branch has been sitting unfinished for 32 days",
+      "summary": "A branch has been sitting unfinished for 33 days",
       "detail": "fix/sec-incident-content is 13 commits ahead, last touched 2026-08-07.",
       "state": "branch_stranded",
       "url": "https://github.com/thomas-tahk/knowflow/tree/fix/sec-incident-content",

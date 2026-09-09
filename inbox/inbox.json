@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T09:37:24Z",
+  "generated_at": "2026-09-09T14:28:18Z",
   "projects": [
     "thomas-tahk/pocket-draft",
     "thomas-tahk/priority-post",
@@ -14,7 +14,7 @@
       "detail": "Failing: tick.",
       "state": "build_failing",
       "url": "https://github.com/thomas-tahk/priority-post/actions",
-      "since": "2026-09-09T09:37:24Z",
+      "since": "2026-09-09T14:28:18Z",
       "actions": [
         {
           "key": "open",
@@ -54,6 +54,39 @@
           "label": "Read the plan",
           "kind": "open_url",
           "value": "https://github.com/thomas-tahk/pocket-draft/issues/9"
+        }
+      ]
+    },
+    {
+      "id": "priority-post#4",
+      "repo": "thomas-tahk/priority-post",
+      "number": 4,
+      "summary": "Fix failing \"tick\" check on main",
+      "detail": "Identify and resolve what broke in the \"tick\" check on main.",
+      "state": "waiting_on_you",
+      "url": "https://github.com/thomas-tahk/priority-post/issues/4",
+      "since": "2026-09-09T11:00:45Z",
+      "actions": [
+        {
+          "key": "approve",
+          "label": "Build it",
+          "kind": "apply_label",
+          "number": 4,
+          "value": "factory:approved"
+        },
+        {
+          "key": "decline",
+          "label": "Not now",
+          "kind": "apply_label",
+          "number": 4,
+          "value": "factory:declined",
+          "confirm": true
+        },
+        {
+          "key": "read",
+          "label": "Read the plan",
+          "kind": "open_url",
+          "value": "https://github.com/thomas-tahk/priority-post/issues/4"
         }
       ]
     },

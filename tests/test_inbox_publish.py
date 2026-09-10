@@ -245,3 +245,29 @@ class TestARedBuildDoesNotRewriteTheFileEveryHour:
         [item] = mod.repo_items("priority-post", datetime(2026, 9, 10, 18, 0, tzinfo=timezone.utc))
 
         assert item["since"] == "2026-09-10T18:00:00Z"
+
+
+class TestNotNowMeansGone:
+    """Declining adds a label and removes none. The reader has to filter, or the
+    button looks broken: the item you refused comes straight back."""
+
+    @staticmethod
+    def labelled_issue(number, *names):
+        i = issue(number, f"Proposal {number}")
+        i["labels"] = [{"name": n} for n in names]
+        return i
+
+    def test_a_declined_proposal_leaves_the_list(self):
+        from scripts.inbox_publish import undecided
+
+        kept = undecided([
+            self.labelled_issue(4, "factory:proposed", "factory:declined"),
+            self.labelled_issue(9, "factory:proposed"),
+        ])
+
+        assert [i["number"] for i in kept] == [9]
+
+    def test_an_issue_carrying_no_labels_is_still_undecided(self):
+        from scripts.inbox_publish import undecided
+
+        assert len(undecided([issue(11, "Typed by hand")])) == 1

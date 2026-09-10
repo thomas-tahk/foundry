@@ -58,6 +58,18 @@ def _link(key, text, url):
     return {"key": key, "label": text, "kind": "open_url", "value": url}
 
 
+def undecided(issues):
+    """Proposals you have not answered yet.
+
+    Declining adds a label; nothing takes `proposed` off, and priority-post can
+    only add labels, never remove them. So the reader has to do the filtering —
+    otherwise "Not now" looks like a button that does nothing, and the item you
+    just refused is still there on the next refresh.
+    """
+    return [i for i in issues
+            if DECLINED not in {l.get("name") for l in i.get("labels", [])}]
+
+
 def proposal_items(repo, issues):
     """Work the factory has proposed and is waiting on a decision about."""
     return [{
@@ -198,7 +210,7 @@ def repo_items(repo, now):
     info = gh(f"/repos/{OWNER}/{repo}")
     default = info.get("default_branch") if isinstance(info, dict) else None
     items = []
-    items += proposal_items(repo, issues_with_label(repo, PROPOSED, "open"))
+    items += proposal_items(repo, undecided(issues_with_label(repo, PROPOSED, "open")))
     items += draft_items(repo, labelled(repo, BUILT_PR, want_pulls=True))
     if default:
         items += stranded_items(repo, live_stranded(repo, default, now))

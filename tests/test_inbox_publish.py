@@ -267,6 +267,32 @@ class TestNotNowMeansGone:
 
         assert [i["number"] for i in kept] == [9]
 
+    def test_a_proposal_already_built_leaves_the_list(self):
+        from scripts.inbox_publish import undecided
+
+        kept = undecided([
+            self.labelled_issue(9, "factory:proposed", "factory:built"),
+            self.labelled_issue(11, "factory:proposed"),
+        ])
+
+        assert [i["number"] for i in kept] == [11]
+
+    def test_a_proposal_being_built_right_now_leaves_the_list(self):
+        from scripts.inbox_publish import undecided
+
+        kept = undecided([self.labelled_issue(9, "factory:proposed",
+                                              "factory:building")])
+
+        assert kept == []
+
+    def test_a_blocked_proposal_leaves_the_list(self):
+        from scripts.inbox_publish import undecided
+
+        kept = undecided([self.labelled_issue(9, "factory:proposed",
+                                              "factory:blocked")])
+
+        assert kept == []
+
     def test_an_issue_carrying_no_labels_is_still_undecided(self):
         from scripts.inbox_publish import undecided
 

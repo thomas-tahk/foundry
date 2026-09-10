@@ -14,7 +14,7 @@ import re
 from datetime import datetime, timezone
 from pathlib import Path
 
-from scripts.build_facts import APPROVED, TRY_AGAIN, labelled
+from scripts.build_facts import APPROVED, BUILDING, BUILT, TRY_AGAIN, labelled
 from scripts.census_facts import stranded_branches
 from scripts.generate_report import OWNER, gh, load_elected
 from scripts.propose_facts import DECLINED, PROPOSED, issues_with_label
@@ -28,6 +28,11 @@ OUT = HUB_ROOT / "inbox" / "inbox.json"
 DETAIL_CHARS = 240
 LEAD_IN = re.compile(r"^\*\*[^*]+\*\*\s*[—–-]\s*")
 BUILT_PR = "factory:built"
+BLOCKED = "factory:blocked"
+
+# A proposal carrying any of these has already been answered. Nothing takes
+# `proposed` back off, so the label stays on for the life of the issue.
+ANSWERED = {DECLINED, BUILDING, BUILT, BLOCKED}
 
 # priority-post knows these four strings, because they drive colour and order.
 # It knows no others, and drops an item carrying one it does not recognise.
@@ -61,13 +66,17 @@ def _link(key, text, url):
 def undecided(issues):
     """Proposals you have not answered yet.
 
-    Declining adds a label; nothing takes `proposed` off, and priority-post can
+    Answering adds a label; nothing takes `proposed` off, and priority-post can
     only add labels, never remove them. So the reader has to do the filtering —
     otherwise "Not now" looks like a button that does nothing, and the item you
     just refused is still there on the next refresh.
+
+    Approving is the same trap one step later: the issue keeps `proposed` while
+    it builds, so the list offered "Build it" on work that was already built and
+    showed the finished draft directly underneath it, under the same title.
     """
     return [i for i in issues
-            if DECLINED not in {l.get("name") for l in i.get("labels", [])}]
+            if not ANSWERED & {l.get("name") for l in i.get("labels", [])}]
 
 
 def proposal_items(repo, issues):

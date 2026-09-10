@@ -72,6 +72,22 @@ jobs:
             rmdir "work/$repo/.branches" 2>/dev/null || true
           done
 
+      # The turn cap is a runaway brake, not a workload budget, so it has to grow
+      # with the workload. A fixed 60 was set when one project was elected; at three
+      # the run overran at 68 and 76 turns and the action failed it *after* the model
+      # had finished — throwing away finished proposals, because publishing is gated
+      # on this step succeeding. Reading one project's real files costs roughly 25
+      # turns, so budget 45 each and keep a 60 floor for a single-project run.
+      - name: Size the turn budget
+        id: budget
+        run: |
+          eligible=$(python3 -c 'import json; \
+            print(sum(1 for r in json.load(open("propose/facts.json"))["repos"] if r["eligible"]))')
+          turns=$(( eligible * 45 ))
+          [ "$turns" -lt 60 ] && turns=60
+          echo "turns=$turns" >> "$GITHUB_OUTPUT"
+          echo "$eligible eligible project(s) -> --max-turns $turns"
+
       # Stage 2 — judgment. Deliberately given no token: this step must not be able
       # to reach the GitHub API, so a bad run cannot half-open an issue.
       - name: Write proposals
@@ -81,7 +97,7 @@ jobs:
           prompt: |
             Follow the instructions in .factory/prompts/l1-proposer.md exactly.
           claude_args: |
-            --max-turns 60
+            --max-turns ${{ steps.budget.outputs.turns }}
             --model claude-sonnet-5
             --allowedTools Read,Write,Glob,Grep
 

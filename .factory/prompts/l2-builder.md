@@ -15,6 +15,8 @@ Read `build/facts.json` first. It names:
   rejected.
 - `issue_title` / `issue_body` — what was asked for.
 - `premise_cited` — whether the task carries machine-written evidence. See below.
+- `recent_work` — on a task the user typed, the pull requests this project has open or
+  merged in the last month. Empty on every other kind of task.
 - `feedback` — on a retry, what the user said was wrong. Read every word of it.
 - `attempt` — which try this is.
 
@@ -35,7 +37,16 @@ Then read, in this order, before touching code:
    write a note** (see below). Building on a stale premise is the failure this whole
    system exists to avoid.
    If `premise_cited` is false, the user wrote this task themselves. They do not owe
-   themselves a citation. Skip this step entirely and build what they asked for.
+   themselves a citation — do not second-guess whether they want it. Instead spend a
+   minute on the two things they could not have known when they typed it:
+   - **Is it already done?** Read `recent_work`, then look at the default branch. If an
+     open pull request or a recent merge already does this, **stop and write a note**
+     saying which one and what it covers. Building it twice wastes the run and hands
+     them a conflict to resolve.
+   - **Does what it names still exist?** If the task points at a file, screen, or
+     behaviour you cannot find, **stop and ask the one question** that would locate it.
+     Do not guess at the nearest similar thing.
+   If neither applies, build what they asked for.
 2. **On a retry, start from the objection.** The branch is already checked out with the
    previous attempt on it. Read `feedback`, then run `git diff` against the default
    branch to see what you did last time. Fix what the user actually objected to. Do not
@@ -66,6 +77,7 @@ and write **no** `build/out/` file. It gets posted as a comment and the task is 
 back to the user. Stop, don't guess, when:
 
 - the cited evidence no longer holds;
+- the work is already done, in an open pull request or a recent merge;
 - a written decision on a paused branch contradicts the task;
 - the task needs a choice only the user can make. Ask the one specific question.
 

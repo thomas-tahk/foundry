@@ -1,29 +1,11 @@
 {
-  "generated_at": "2026-09-10T18:20:36Z",
+  "generated_at": "2026-09-10T21:34:30Z",
   "projects": [
     "thomas-tahk/pocket-draft",
     "thomas-tahk/priority-post",
     "thomas-tahk/knowflow"
   ],
   "items": [
-    {
-      "id": "priority-post~ci",
-      "repo": "thomas-tahk/priority-post",
-      "number": null,
-      "summary": "The build is failing on main",
-      "detail": "Failing: tick, tick.",
-      "state": "build_failing",
-      "url": "https://github.com/thomas-tahk/priority-post/actions",
-      "since": "2026-09-10T18:20:36Z",
-      "actions": [
-        {
-          "key": "open",
-          "label": "See what broke",
-          "kind": "open_url",
-          "value": "https://github.com/thomas-tahk/priority-post/actions"
-        }
-      ]
-    },
     {
       "id": "pocket-draft#9",
       "repo": "thomas-tahk/pocket-draft",
@@ -61,8 +43,8 @@
       "id": "priority-post#4",
       "repo": "thomas-tahk/priority-post",
       "number": 4,
-      "summary": "Fix failing \"tick\" check on main",
-      "detail": "Identify and resolve what broke in the \"tick\" check on main.",
+      "summary": "Stop losing the evening digest when Discord refuses it",
+      "detail": "Make the evening Discord message survive a refusal. Right now it gets one attempt per night, and if Discord turns it down the message is gone for good.",
       "state": "waiting_on_you",
       "url": "https://github.com/thomas-tahk/priority-post/issues/4",
       "since": "2026-09-09T11:00:45Z",

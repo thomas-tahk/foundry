@@ -45,10 +45,12 @@ def default_branch_ci(repo, default):
     check_runs = newest_per_workflow(runs.get("check_runs") or [])
     if not check_runs:
         return {"state": "none", "failing": []}
-    failing = [c["name"] for c in check_runs
-               if c.get("conclusion") in ("failure", "timed_out")]
-    if failing:
-        return {"state": "failing", "failing": failing}
+    failed = [c for c in check_runs if c.get("conclusion") in ("failure", "timed_out")]
+    if failed:
+        started = [c["started_at"] for c in failed if c.get("started_at")]
+        return {"state": "failing",
+                "failing": [c["name"] for c in failed],
+                "failing_since": min(started) if started else ""}
     if any(c.get("status") != "completed" for c in check_runs):
         return {"state": "in_progress", "failing": []}
     return {"state": "passing", "failing": []}

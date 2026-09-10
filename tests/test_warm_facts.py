@@ -66,6 +66,22 @@ class DefaultBranchCI(unittest.TestCase):
         self.assertEqual(result["state"], "failing")
         self.assertEqual(result["failing"], ["tick"])
 
+    def test_a_failure_says_when_it_started_not_when_it_was_read(self):
+        """Stamping this with the read time made the published inbox differ from
+        itself every hour, so it was committed every hour."""
+        self.payload = {"check_runs": [
+            {"name": "build", "status": "completed", "conclusion": "failure",
+             "started_at": "2026-09-08T07:50:00Z"},
+            {"name": "tick", "status": "completed", "conclusion": "failure",
+             "started_at": "2026-09-09T05:00:00Z"}]}
+        self.assertEqual(default_branch_ci("r", "main")["failing_since"],
+                         "2026-09-08T07:50:00Z")
+
+    def test_a_failure_with_no_start_time_reports_none(self):
+        self.payload = {"check_runs": [
+            {"name": "build", "status": "completed", "conclusion": "failure"}]}
+        self.assertEqual(default_branch_ci("r", "main")["failing_since"], "")
+
     def test_a_different_workflow_failing_is_not_masked(self):
         self.payload = {"check_runs": [
             {"name": "tick", "status": "completed", "conclusion": "failure",

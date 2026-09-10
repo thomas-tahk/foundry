@@ -101,7 +101,13 @@ def draft_items(repo, pulls):
 
 
 def failing_build_item(repo, ci, default, since):
-    """Friction, not work. There is no button that fixes a red build."""
+    """Friction, not work. There is no button that fixes a red build.
+
+    `since` is when the failing run started, not now. Stamping this item with the
+    publish time rewrote the file every hour, so a document whose whole job is to
+    say what changed committed a change every run — and the list could not say
+    how long the build had been red.
+    """
     if ci.get("state") != "failing":
         return None
     names = ", ".join(ci.get("failing", [])) or "the build"
@@ -197,7 +203,8 @@ def repo_items(repo, now):
     if default:
         items += stranded_items(repo, live_stranded(repo, default, now))
         ci = default_branch_ci(repo, default)
-        failing = failing_build_item(repo, ci, default, stamp)
+        failing = failing_build_item(repo, ci, default,
+                                     ci.get("failing_since") or stamp)
         if failing:
             items.append(failing)
     return items

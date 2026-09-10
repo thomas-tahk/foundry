@@ -206,3 +206,42 @@ class TestQuietWhenNothingChanged:
 
     def test_no_previous_file_counts_as_changed(self):
         assert is_unchanged(None, {"generated_at": "x", "items": []}) is False
+
+
+class TestARedBuildDoesNotRewriteTheFileEveryHour:
+    """The bug: the red-build item was stamped with the publish time, so the
+    document differed from itself every run and was committed every run."""
+
+    @staticmethod
+    def _quiet_repo(monkeypatch, ci):
+        from scripts import inbox_publish as mod
+
+        monkeypatch.setattr(mod, "gh", lambda path, params=None: {"default_branch": "main"})
+        monkeypatch.setattr(mod, "issues_with_label", lambda *a, **k: [])
+        monkeypatch.setattr(mod, "labelled", lambda *a, **k: [])
+        monkeypatch.setattr(mod, "live_stranded", lambda *a, **k: [])
+        monkeypatch.setattr(mod, "default_branch_ci", lambda *a, **k: ci)
+        return mod
+
+    def test_the_same_red_build_reads_the_same_an_hour_later(self, monkeypatch):
+        from datetime import datetime, timezone
+
+        mod = self._quiet_repo(monkeypatch, {
+            "state": "failing", "failing": ["tick"],
+            "failing_since": "2026-09-09T05:00:00Z"})
+
+        first = mod.repo_items("priority-post", datetime(2026, 9, 10, 14, 0, tzinfo=timezone.utc))
+        later = mod.repo_items("priority-post", datetime(2026, 9, 10, 18, 0, tzinfo=timezone.utc))
+
+        assert first == later
+        assert first[0]["since"] == "2026-09-09T05:00:00Z"
+
+    def test_a_build_that_never_said_when_still_sorts(self, monkeypatch):
+        from datetime import datetime, timezone
+
+        mod = self._quiet_repo(monkeypatch, {
+            "state": "failing", "failing": ["tick"], "failing_since": ""})
+
+        [item] = mod.repo_items("priority-post", datetime(2026, 9, 10, 18, 0, tzinfo=timezone.utc))
+
+        assert item["since"] == "2026-09-10T18:00:00Z"

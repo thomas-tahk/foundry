@@ -36,6 +36,11 @@ which and why in the PR body. Append-only is how a brain becomes a swamp.
    `vite-node` because of an `argv[1]` guard — it exited 0 and shipped nothing. The fix
    was a separate entrypoint plus a test that spawns the real command. Test the command
    you actually run, not the function it calls.
+8a. **A change to a workflow file that calls `claude-code-action` cannot be tested on a
+   branch.** The action refuses to run unless the workflow file is byte-identical to the
+   default branch's copy — and it *skips itself and reports success*, so the run goes
+   green in seconds having done nothing. Editing a prompt file is testable on a branch;
+   editing the `.yml` around it is not. Land it on `main`, then dispatch.
 
 ## Deployment — how things actually break
 

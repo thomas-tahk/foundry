@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T21:34:30Z",
+  "generated_at": "2026-09-10T23:30:13Z",
   "projects": [
     "thomas-tahk/pocket-draft",
     "thomas-tahk/priority-post",
@@ -69,6 +69,31 @@
           "label": "Read the plan",
           "kind": "open_url",
           "value": "https://github.com/thomas-tahk/priority-post/issues/4"
+        }
+      ]
+    },
+    {
+      "id": "pocket-draft!12",
+      "repo": "thomas-tahk/pocket-draft",
+      "number": 12,
+      "summary": "Give the bot's deck a real 16-round draft, not a fixed preset",
+      "detail": "A draft is open. Nothing has shipped.",
+      "state": "draft_ready",
+      "url": "https://github.com/thomas-tahk/pocket-draft/pull/12",
+      "since": "2026-09-08T09:22:47Z",
+      "actions": [
+        {
+          "key": "review",
+          "label": "Review on GitHub",
+          "kind": "open_url",
+          "value": "https://github.com/thomas-tahk/pocket-draft/pull/12"
+        },
+        {
+          "key": "retry",
+          "label": "Try again",
+          "kind": "apply_label",
+          "number": 12,
+          "value": "factory:try-again"
         }
       ]
     },

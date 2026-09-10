@@ -27,6 +27,7 @@ from scripts.propose_facts import extract_source
 APPROVED = "factory:approved"
 TRY_AGAIN = "factory:try-again"
 BUILDING = "factory:building"
+BUILT = "factory:built"
 DEEP = "factory:deep"
 MAX_ATTEMPTS = 3
 
@@ -146,6 +147,16 @@ def has_label(item, name):
     return any(l.get("name") == name for l in (item or {}).get("labels", []))
 
 
+def buildable(issue):
+    """An approved issue that is not already being built or already finished.
+
+    A finished issue can carry `approved` again — the inbox offers the button
+    until its published file catches up, and a second tap is an honest mistake.
+    Rebuilding on it would spend a run churning a pull request that already exists.
+    """
+    return not (has_label(issue, BUILDING) or has_label(issue, BUILT))
+
+
 def build_work(repo, issue):
     """A first build from an approved issue."""
     return {
@@ -176,7 +187,7 @@ def find_work(repos):
                 return work
     for repo in repos:
         for issue in labelled(repo, APPROVED, want_pulls=False):
-            if has_label(issue, BUILDING):
+            if not buildable(issue):
                 continue
             return build_work(repo, issue)
     return None

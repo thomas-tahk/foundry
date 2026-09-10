@@ -47,6 +47,61 @@ class DefaultBranchCI(unittest.TestCase):
         self.payload = {"check_runs": []}
         self.assertEqual(default_branch_ci("r", "main")["state"], "none")
 
+    def test_a_rerun_that_passed_settles_the_workflow(self):
+        """Both runs stay attached to the commit. Only the newest one is the truth."""
+        self.payload = {"check_runs": [
+            {"name": "tick", "status": "completed", "conclusion": "failure",
+             "started_at": "2026-09-08T07:45:32Z"},
+            {"name": "tick", "status": "completed", "conclusion": "success",
+             "started_at": "2026-09-08T07:52:07Z"}]}
+        self.assertEqual(default_branch_ci("r", "main")["state"], "passing")
+
+    def test_a_rerun_that_failed_is_still_a_failure(self):
+        self.payload = {"check_runs": [
+            {"name": "tick", "status": "completed", "conclusion": "success",
+             "started_at": "2026-09-08T07:45:32Z"},
+            {"name": "tick", "status": "completed", "conclusion": "failure",
+             "started_at": "2026-09-08T07:52:07Z"}]}
+        result = default_branch_ci("r", "main")
+        self.assertEqual(result["state"], "failing")
+        self.assertEqual(result["failing"], ["tick"])
+
+    def test_a_failure_says_when_it_started_not_when_it_was_read(self):
+        """Stamping this with the read time made the published inbox differ from
+        itself every hour, so it was committed every hour."""
+        self.payload = {"check_runs": [
+            {"name": "build", "status": "completed", "conclusion": "failure",
+             "started_at": "2026-09-08T07:50:00Z"},
+            {"name": "tick", "status": "completed", "conclusion": "failure",
+             "started_at": "2026-09-09T05:00:00Z"}]}
+        self.assertEqual(default_branch_ci("r", "main")["failing_since"],
+                         "2026-09-08T07:50:00Z")
+
+    def test_a_failure_with_no_start_time_reports_none(self):
+        self.payload = {"check_runs": [
+            {"name": "build", "status": "completed", "conclusion": "failure"}]}
+        self.assertEqual(default_branch_ci("r", "main")["failing_since"], "")
+
+    def test_a_different_workflow_failing_is_not_masked(self):
+        self.payload = {"check_runs": [
+            {"name": "tick", "status": "completed", "conclusion": "failure",
+             "started_at": "2026-09-08T07:45:32Z"},
+            {"name": "tick", "status": "completed", "conclusion": "success",
+             "started_at": "2026-09-08T07:52:07Z"},
+            {"name": "build", "status": "completed", "conclusion": "failure",
+             "started_at": "2026-09-08T07:50:00Z"}]}
+        result = default_branch_ci("r", "main")
+        self.assertEqual(result["state"], "failing")
+        self.assertEqual(result["failing"], ["build"])
+
+    def test_an_unordered_response_still_picks_the_newest(self):
+        self.payload = {"check_runs": [
+            {"name": "tick", "status": "completed", "conclusion": "success",
+             "started_at": "2026-09-08T07:52:07Z"},
+            {"name": "tick", "status": "completed", "conclusion": "failure",
+             "started_at": "2026-09-08T07:45:32Z"}]}
+        self.assertEqual(default_branch_ci("r", "main")["state"], "passing")
+
 
 class StaleDependencyPRs(unittest.TestCase):
     def test_an_old_dependabot_pr_is_stale(self):

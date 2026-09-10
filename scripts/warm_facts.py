@@ -21,18 +21,36 @@ STRANDED_DAYS = 21  # A branch idle this long is the user's dormancy made visibl
 DEPENDABOT_DAYS = 14
 
 
+def newest_per_workflow(check_runs):
+    """One check run per name — the most recently started.
+
+    A re-run does not replace the run it repeats: both stay attached to the
+    commit forever. Reading them all means a workflow that failed once is failing
+    for good, however many times it has passed since.
+    """
+    newest = {}
+    for run in check_runs:
+        name = run.get("name", "")
+        current = newest.get(name)
+        if current is None or (run.get("started_at") or "") >= (current.get("started_at") or ""):
+            newest[name] = run
+    return list(newest.values())
+
+
 def default_branch_ci(repo, default):
     """The conclusion of the latest check runs on the default branch."""
     runs = gh(f"/repos/{OWNER}/{repo}/commits/{default}/check-runs", {"per_page": 50})
     if not isinstance(runs, dict):
         return {"state": "unknown", "failing": []}
-    check_runs = runs.get("check_runs") or []
+    check_runs = newest_per_workflow(runs.get("check_runs") or [])
     if not check_runs:
         return {"state": "none", "failing": []}
-    failing = [c["name"] for c in check_runs
-               if c.get("conclusion") in ("failure", "timed_out")]
-    if failing:
-        return {"state": "failing", "failing": failing}
+    failed = [c for c in check_runs if c.get("conclusion") in ("failure", "timed_out")]
+    if failed:
+        started = [c["started_at"] for c in failed if c.get("started_at")]
+        return {"state": "failing",
+                "failing": [c["name"] for c in failed],
+                "failing_since": min(started) if started else ""}
     if any(c.get("status") != "completed" for c in check_runs):
         return {"state": "in_progress", "failing": []}
     return {"state": "passing", "failing": []}

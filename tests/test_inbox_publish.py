@@ -206,3 +206,68 @@ class TestQuietWhenNothingChanged:
 
     def test_no_previous_file_counts_as_changed(self):
         assert is_unchanged(None, {"generated_at": "x", "items": []}) is False
+
+
+class TestARedBuildDoesNotRewriteTheFileEveryHour:
+    """The bug: the red-build item was stamped with the publish time, so the
+    document differed from itself every run and was committed every run."""
+
+    @staticmethod
+    def _quiet_repo(monkeypatch, ci):
+        from scripts import inbox_publish as mod
+
+        monkeypatch.setattr(mod, "gh", lambda path, params=None: {"default_branch": "main"})
+        monkeypatch.setattr(mod, "issues_with_label", lambda *a, **k: [])
+        monkeypatch.setattr(mod, "labelled", lambda *a, **k: [])
+        monkeypatch.setattr(mod, "live_stranded", lambda *a, **k: [])
+        monkeypatch.setattr(mod, "default_branch_ci", lambda *a, **k: ci)
+        return mod
+
+    def test_the_same_red_build_reads_the_same_an_hour_later(self, monkeypatch):
+        from datetime import datetime, timezone
+
+        mod = self._quiet_repo(monkeypatch, {
+            "state": "failing", "failing": ["tick"],
+            "failing_since": "2026-09-09T05:00:00Z"})
+
+        first = mod.repo_items("priority-post", datetime(2026, 9, 10, 14, 0, tzinfo=timezone.utc))
+        later = mod.repo_items("priority-post", datetime(2026, 9, 10, 18, 0, tzinfo=timezone.utc))
+
+        assert first == later
+        assert first[0]["since"] == "2026-09-09T05:00:00Z"
+
+    def test_a_build_that_never_said_when_still_sorts(self, monkeypatch):
+        from datetime import datetime, timezone
+
+        mod = self._quiet_repo(monkeypatch, {
+            "state": "failing", "failing": ["tick"], "failing_since": ""})
+
+        [item] = mod.repo_items("priority-post", datetime(2026, 9, 10, 18, 0, tzinfo=timezone.utc))
+
+        assert item["since"] == "2026-09-10T18:00:00Z"
+
+
+class TestNotNowMeansGone:
+    """Declining adds a label and removes none. The reader has to filter, or the
+    button looks broken: the item you refused comes straight back."""
+
+    @staticmethod
+    def labelled_issue(number, *names):
+        i = issue(number, f"Proposal {number}")
+        i["labels"] = [{"name": n} for n in names]
+        return i
+
+    def test_a_declined_proposal_leaves_the_list(self):
+        from scripts.inbox_publish import undecided
+
+        kept = undecided([
+            self.labelled_issue(4, "factory:proposed", "factory:declined"),
+            self.labelled_issue(9, "factory:proposed"),
+        ])
+
+        assert [i["number"] for i in kept] == [9]
+
+    def test_an_issue_carrying_no_labels_is_still_undecided(self):
+        from scripts.inbox_publish import undecided
+
+        assert len(undecided([issue(11, "Typed by hand")])) == 1

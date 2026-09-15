@@ -1,0 +1,52 @@
+name: Factory — Watchdog
+
+# The only thing here that is not delivered by something on a schedule.
+#
+# The inbox the phone reads and the evening digest both arrive by cron. When
+# cron is what broke, both go silent, and silence reads the same as "nothing to
+# report" — which is how a missing digest went unnoticed for four days. This
+# job watches the other jobs and posts straight to Discord.
+#
+# It alarms on staleness rather than on a time of day, so a run GitHub drops
+# delays the alarm instead of losing it. Same reason it fires hourly: it only
+# needs to land once inside a thirty-hour window.
+
+on:
+  schedule:
+    - cron: "41 * * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: factory-watchdog
+  cancel-in-progress: false
+
+jobs:
+  watchdog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the watched jobs
+        env:
+          GITHUB_TOKEN: ${{ secrets.FACTORY_GH_TOKEN }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: python3 -m scripts.watchdog
+
+      - name: Remember what is already firing
+        run: |
+          # The state file is what stops an alarm repeating every hour. It is
+          # committed rather than kept in the runner because each run is a new
+          # machine that remembers nothing.
+          if git diff --quiet -- watch/state.json; then
+            echo "No change in what is firing."
+            exit 0
+          fi
+          git config user.name "factory"
+          git config user.email "factory@users.noreply.github.com"
+          git add watch/state.json
+          git commit -m "watchdog: what is firing changed"
+          git push

@@ -1,0 +1,13 @@
+# Jobs whose silence should be noticed.
+#
+# One line per job: <repo> <workflow file> <hours before it counts as missing>
+#
+# The factory cannot tell a quiet channel from a broken one by looking at the
+# channel. It has to ask the runner. If a watched workflow has not finished
+# successfully within its window, that is said out loud in Discord — and said
+# once, not every hour.
+#
+# The window is a staleness threshold, never a time of day. A watchdog run that
+# GitHub drops delays the alarm; it cannot lose it.
+
+priority-post  tick.yml  30
